@@ -25,6 +25,7 @@ class Train():
                 for e in range(0,self.episodes):
                     x,y = self.noise.getGoals()
                     #DO THE MODEL
+                    #Reward
         print(f"{time.time()-start}")
 
 if __name__ == "__main__":

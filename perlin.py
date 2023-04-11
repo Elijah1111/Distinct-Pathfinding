@@ -13,22 +13,21 @@ class Perlin():
         self.perlin.fractal.octaves = 8
         self.perlin.fractal.lacunarity = 1.0#does not seem to be implemented
         self.perlin.perturb.perturbType = fns.PerturbType.GradientFractal
-        self.randomVals()
 
     def randomVals(self):
         #self.perlin.frequency = 0.001
         self.perlin.frequency = np.random.rand()*(0.005 - 0.001)+0.001
         self.perlin.fractal.gain = np.random.rand()+2.1 #2.1-3
-        self.perlin.fractal.gain = 3 #2.1-3
-
     
     def getImage(self):
+        self.randomVals()
         img = self.perlin.genAsGrid(self.shape)
         img = img/2 + 0.5
         return img
 
     def getGoals(self):
         return (np.random.randint(0,1028,(1,2)), np.random.randint(0,1028,(1,2)))
+
 if __name__ =="__main__":
     noise = Perlin()
     plt.imshow(noise.getImage(),cmap="gray")
