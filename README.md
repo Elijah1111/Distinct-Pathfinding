@@ -3,6 +3,22 @@ A Neural Network that pathfinds on height maps
 
 
 # Libraries
-TODO Describe these
-[FastNoiseSIMD](https://github.com/Auburn/FastNoiseSIMD)
-[pyfastnoisesimd](https://github.com/robbmcleod/pyfastnoisesimd)
+* [FastNoiseSIMD](https://github.com/Auburn/FastNoiseSIMD)
+
+  A parallel proscessing library for generating various noise types quickly
+  
+* [pyfastnoisesimd](https://github.com/robbmcleod/pyfastnoisesimd)
+
+  A python wrapper for FastNoise allowing usage in python project
+
+# Installation 
+ Install pyfastnoisesimd
+ ```
+ pip install pyfastnoisesimd
+ ```
+
+
+# Credit
+[@Elijah1111](https://github.com/Elijah1111)
+
+...
