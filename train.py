@@ -87,12 +87,19 @@ class Train():
                     x,y=endingVal[0][0]-1,endingVal[0][1]-1
                     path=[]
                     mattemp[x,y]=np.nan
-
-                    while x>startingx or y>startingy:
-                        path.append([x,y])
-                        xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
-                        x,y=xxyy[0],xxyy[1]
-                        mattemp[x,y]=np.nan
+                    if(startingx > endingVal[0][0] or startingy > endingVal[0][1]):
+                        while x>startingx or y>startingy:
+                            path.append([x,y])
+                            xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
+                            x,y=xxyy[0],xxyy[1]
+                            mattemp[x,y]=np.nan
+                    else:
+                        while x<startingx or y<startingy:
+                            path.append([x,y])
+                            xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
+                            x,y=xxyy[0],xxyy[1]
+                            mattemp[x,y]=np.nan
+                    
                     path.append([x,y])
                     #Initial state will be the graph/method designed for traversing the noise graph with initial position and goal position 
                     #Goal state and reward modeling will be based on dikjstra's path x
