@@ -53,23 +53,23 @@ class Train():
                     while not finished:
   # move to x+1,y
                         if x < SIZE-1:
-                            if distmap[x+1,y]>self.img[x+1,y]+distmap[x,y] and not visited[x+1,y]:
-                                distmap[x+1,y]=self.img[x+1,y]+distmap[x,y]
+                            if distmap[x+1,y]>weightedValue[x+1,y]+distmap[x,y] and not visited[x+1,y]:
+                                distmap[x+1,y]=weightedValue[x+1,y]+distmap[x,y]
                                 originmap[x+1,y]=np.ravel_multi_index([x,y], (SIZE,SIZE))
   # move to x-1,y
                         if x>0:
-                            if distmap[x-1,y]>self.img[x-1,y]+distmap[x,y] and not visited[x-1,y]:
-                                distmap[x-1,y]=self.img[x-1,y]+distmap[x,y]
+                            if distmap[x-1,y]>weightedValue[x-1,y]+distmap[x,y] and not visited[x-1,y]:
+                                distmap[x-1,y]=weightedValue[x-1,y]+distmap[x,y]
                                 originmap[x-1,y]=np.ravel_multi_index([x,y], (SIZE,SIZE))
   # move to x,y+1
                         if y < SIZE-1:
-                            if distmap[x,y+1]>self.img[x,y+1]+distmap[x,y] and not visited[x,y+1]:
-                                distmap[x,y+1]=self.img[x,y+1]+distmap[x,y]
+                            if distmap[x,y+1]>weightedValue[x,y+1]+distmap[x,y] and not visited[x,y+1]:
+                                distmap[x,y+1]=weightedValue[x,y+1]+distmap[x,y]
                                 originmap[x,y+1]=np.ravel_multi_index([x,y], (SIZE,SIZE))
   # move to x,y-1
                         if y>0:
-                            if distmap[x,y-1]>self.img[x,y-1]+distmap[x,y] and not visited[x,y-1]:
-                                distmap[x,y-1]=self.img[x,y-1]+distmap[x,y]
+                            if distmap[x,y-1]>weightedValue[x,y-1]+distmap[x,y] and not visited[x,y-1]:
+                                distmap[x,y-1]=weightedValue[x,y-1]+distmap[x,y]
                                 originmap[x,y-1]=np.ravel_multi_index([x,y], (SIZE,SIZE))
 
                         visited[x,y]=True
@@ -83,7 +83,7 @@ class Train():
                         count=count+1
 
 #Start backtracking to plot the path  
-                    mattemp=self.img.astype(float)
+                    mattemp=weightedValue.astype(float)
                     x,y=endingVal[0][0]-1,endingVal[0][1]-1
                     path=[]
                     mattemp[x,y]=np.nan
