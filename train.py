@@ -78,13 +78,13 @@ class Train():
   # now we find the shortest path so far
                         minpost=np.unravel_index(np.argmin(dismaptemp),np.shape(dismaptemp))
                         x,y=minpost[0],minpost[1]
-                        if x==SIZE-1 and y==SIZE-1:
+                        if x==endingVal[0][0]-1 and y==endingVal[0][1]-1:
                             finished=True
                         count=count+1
 
 #Start backtracking to plot the path  
                     mattemp=self.img.astype(float)
-                    x,y=SIZE-1,SIZE-1
+                    x,y=endingVal[0][0]-1,endingVal[0][1]-1
                     path=[]
                     mattemp[x,y]=np.nan
 
@@ -94,20 +94,11 @@ class Train():
                         x,y=xxyy[0],xxyy[1]
                         mattemp[x,y]=np.nan
                     path.append([x,y])
-                    # finished = False
-                    # visited=np.zeros((SIZE,SIZE),dtype=bool)
-                    # x,y=np.int(0),np.int(0)
-                    # count = 0
-                    
-                    # while not finished:
-                    #     if x < SIZE-1:
-                    #         if weightedValue[x+1,y] > 
-                    #DO THE MODEL
-                    #Initial state will be the graph/method designed for traversing the noise graph with initial position and goal position
-                    #Goal state and reward modeling will be based on dikjstra's path
-                    #First step will be to get dikjstra's path on the given array
-                    #Then we need to create a directed graph based on that path (using distance vectors)
-                    #Create a way of traversing the provided image
+                    #Initial state will be the graph/method designed for traversing the noise graph with initial position and goal position 
+                    #Goal state and reward modeling will be based on dikjstra's path x
+                    #First step will be to get dikjstra's path on the given array x
+                    #Then we need to create a directed graph based on that path (using distance vectors) x
+                    #Create a way of traversing the provided image x
                     #Then set rewards to be -1 for moving back on itself, 0 for an action that doesn't matter, 1 for taking a step towards the correct path
                     #Reward
         print(f"{time.time()-start}")
