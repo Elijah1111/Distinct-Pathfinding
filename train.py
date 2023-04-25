@@ -3,6 +3,7 @@
 import perlin as per
 import numpy as np
 import time #this could be removed
+import matplotlib.pyplot as plt
 
 #This is where the training is to happen
 SIZE = 128
@@ -112,6 +113,12 @@ class Train():
                             mattemp[x,y]=np.nan#remove old position
                     
                     path.append([x,y])
+                    
+                    xp, yp = zip(*path)
+                    plt.imshow(self.img,cmap="gray")
+                    plt.scatter(xp,yp,color="blue")
+                    plt.scatter([startingx,endingVal[0]],[startingy,endingVal[1]],color="red")
+                    plt.show()
                     #Initial state will be the graph/method designed for traversing the noise graph with initial position and goal position 
                     #Goal state and reward modeling will be based on dikjstra's path x
                     #First step will be to get dikjstra's path on the given array x
