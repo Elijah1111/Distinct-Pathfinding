@@ -114,11 +114,7 @@ class Train():
                     
                     path.append([x,y])
                     
-                    xp, yp = zip(*path)
-                    plt.imshow(self.img,cmap="gray")
-                    plt.scatter(xp,yp,color="blue")
-                    plt.scatter([startingx,endingVal[0]],[startingy,endingVal[1]],color="red")
-                    plt.show()
+                    self.renderMap(path,startingx,startingy,endingVal)
                     #Initial state will be the graph/method designed for traversing the noise graph with initial position and goal position 
                     #Goal state and reward modeling will be based on dikjstra's path x
                     #First step will be to get dikjstra's path on the given array x
@@ -127,6 +123,13 @@ class Train():
                     #Then set rewards to be -1 for moving back on itself, 0 for an action that doesn't matter, 1 for taking a step towards the correct path
                     #Reward
         print(f"{time.time()-start}")
+
+    def renderMap(self,path,startingx,startingy,endingVal):#render a path along the current map
+        plt.imshow(self.img,cmap="gray")
+        xp, yp = zip(*path)#unwrap the path into x and y values
+        plt.scatter(xp,yp,color="blue")#plot them
+        plt.scatter([startingx,endingVal[0]],[startingy,endingVal[1]],color="red")
+        plt.show()
 
 if __name__ == "__main__":
     t = Train()
