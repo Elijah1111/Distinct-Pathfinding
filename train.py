@@ -98,19 +98,11 @@ class Train():
                     
                     path=[]
                     mattemp[x,y]=np.nan
-                    
-                    if(startingx > endingVal[0] or startingy > endingVal[1]):
-                        while x > startingx or y > startingy:
-                            path.append([x,y])#add to path
-                            xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
-                            x,y=xxyy[0],xxyy[1]#set new position
-                            mattemp[x,y] = np.nan #remove old position
-                    else:
-                        while x<startingx or y<startingy:
-                            path.append([x,y])#add to path
-                            xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
-                            x,y=xxyy[0],xxyy[1]#set new position
-                            mattemp[x,y]=np.nan#remove old position
+                    while x != startingx or y != startingy:
+                        path.append([x,y])#add to path
+                        xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
+                        x,y=xxyy[0],xxyy[1]#set new position
+                        mattemp[x,y]=np.nan#remove old position
                     
                     path.append([x,y])
                     
