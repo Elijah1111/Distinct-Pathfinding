@@ -13,7 +13,7 @@ class Train():
     trials = 0#trials of episode sets
     epochs = 0#sets of trials
     noise = per.Perlin()
-    def __init__(self,episodes=1,trials=1,epochs=1):
+    def __init__(self,episodes=10,trials=1,epochs=2):
         self.episodes = episodes
         self.trials = trials
         self.epochs = epochs
@@ -22,6 +22,7 @@ class Train():
         for i in range(0,self.epochs):#TODO probably speed these loops up
             print(f"Epoch {i}")
             for j in range(0,self.trials):
+                print(f"|\tTrial {j}")
                 self.img = self.noise.getImage()#make an image
                 count = 0
                 weightedValue = np.zeros((SIZE,SIZE))
@@ -34,71 +35,81 @@ class Train():
                             tempVar = (1+(self.img[z][t]**2))**.5
                         else:
                             tempVar = (1+((self.img[z][t]+(self.img[z][t]-1))**2))**.5
-                        print(tempVar)
+                        #print(tempVar)
                         weightedValue[z][t] = float(tempVar)
-                        print(count)
+                        #print(count)
                 for e in range(0,self.episodes):
-                    startAndEndGoals = self.noise.getGoals()
-                    startingVal = startAndEndGoals[0]
-                    endingVal = startAndEndGoals[1]
-                    startingx,startingy = startingVal[0][0],startingVal[0][1]
-                    distmap=np.ones((SIZE,SIZE),dtype=int)*np.Infinity
-                    distmap[startingx,startingy]=0
+                    print(f"|\t|\tEpisode {e}")
+                    startingVal,endingVal = self.noise.getGoals()#get the start and the goal
+                    startingx,startingy = startingVal[0],startingVal[1]
+                    distmap=np.ones((SIZE,SIZE),dtype=int)*np.Infinity#initilize distance map
+
+                    distmap[startingx,startingy] = 0#start position is distance of 0
+
                     originmap=np.ones((SIZE,SIZE),dtype=int)*np.nan
                     visited=np.zeros((SIZE,SIZE),dtype=bool)
+                    
                     finished = False
+                    
                     x,y=startingx,startingy
                     count=0
 
                     while not finished:
-  # move to x+1,y
+                        # move to x+1,y
                         if x < SIZE-1:
-                            if distmap[x+1,y]>weightedValue[x+1,y]+distmap[x,y] and not visited[x+1,y]:
-                                distmap[x+1,y]=weightedValue[x+1,y]+distmap[x,y]
-                                originmap[x+1,y]=np.ravel_multi_index([x,y], (SIZE,SIZE))
-  # move to x-1,y
+                            tmp = weightedValue[x+1,y]+distmap[x,y]
+                            if distmap[x+1,y] > tmp and not visited[x+1,y]:
+                                distmap[x+1,y]   = tmp
+                                originmap[x+1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+                        # move to x-1,y
                         if x>0:
-                            if distmap[x-1,y]>weightedValue[x-1,y]+distmap[x,y] and not visited[x-1,y]:
-                                distmap[x-1,y]=weightedValue[x-1,y]+distmap[x,y]
-                                originmap[x-1,y]=np.ravel_multi_index([x,y], (SIZE,SIZE))
-  # move to x,y+1
+                            tmp = weightedValue[x-1,y]+distmap[x,y]
+                            if distmap[x-1,y] > tmp and not visited[x-1,y]:
+                                distmap[x-1,y]   = tmp
+                                originmap[x-1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+                        # move to x,y+1
                         if y < SIZE-1:
-                            if distmap[x,y+1]>weightedValue[x,y+1]+distmap[x,y] and not visited[x,y+1]:
-                                distmap[x,y+1]=weightedValue[x,y+1]+distmap[x,y]
-                                originmap[x,y+1]=np.ravel_multi_index([x,y], (SIZE,SIZE))
-  # move to x,y-1
+                            tmp = weightedValue[x,y+1]+distmap[x,y]
+                            if distmap[x,y+1] > tmp and not visited[x,y+1]:
+                                distmap[x,y+1]   = tmp
+                                originmap[x,y+1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+                        # move to x,y-1
                         if y>0:
-                            if distmap[x,y-1]>weightedValue[x,y-1]+distmap[x,y] and not visited[x,y-1]:
-                                distmap[x,y-1]=weightedValue[x,y-1]+distmap[x,y]
-                                originmap[x,y-1]=np.ravel_multi_index([x,y], (SIZE,SIZE))
+                            tmp = weightedValue[x,y-1]+distmap[x,y]
+                            if distmap[x,y-1] > tmp and not visited[x,y-1]:
+                                distmap[x,y-1]   = tmp
+                                originmap[x,y-1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
 
-                        visited[x,y]=True
-                        dismaptemp=distmap
-                        dismaptemp[np.where(visited)]=np.Infinity
+                        visited[x,y]=True# we have now checked adjacent and we can mark as visted
+
+                        dismaptemp = distmap
+                        dismaptemp[np.where(visited)] = np.Infinity
   # now we find the shortest path so far
-                        minpost=np.unravel_index(np.argmin(dismaptemp),np.shape(dismaptemp))
+                        minpost = np.unravel_index(np.argmin(dismaptemp),np.shape(dismaptemp))
                         x,y=minpost[0],minpost[1]
-                        if x==endingVal[0][0]-1 and y==endingVal[0][1]-1:
+                        if x == endingVal[0]-1 and y == endingVal[1]-1:#reached the goal state
                             finished=True
                         count=count+1
 
 #Start backtracking to plot the path  
-                    mattemp=weightedValue.astype(float)
-                    x,y=endingVal[0][0]-1,endingVal[0][1]-1
+                    mattemp = weightedValue.astype(float)
+                    x,y = endingVal[0]-1,endingVal[1]-1
+                    
                     path=[]
                     mattemp[x,y]=np.nan
-                    if(startingx > endingVal[0][0] or startingy > endingVal[0][1]):
-                        while x>startingx or y>startingy:
-                            path.append([x,y])
+                    
+                    if(startingx > endingVal[0] or startingy > endingVal[1]):
+                        while x > startingx or y > startingy:
+                            path.append([x,y])#add to path
                             xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
-                            x,y=xxyy[0],xxyy[1]
-                            mattemp[x,y]=np.nan
+                            x,y=xxyy[0],xxyy[1]#set new position
+                            mattemp[x,y] = np.nan #remove old position
                     else:
                         while x<startingx or y<startingy:
-                            path.append([x,y])
+                            path.append([x,y])#add to path
                             xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
-                            x,y=xxyy[0],xxyy[1]
-                            mattemp[x,y]=np.nan
+                            x,y=xxyy[0],xxyy[1]#set new position
+                            mattemp[x,y]=np.nan#remove old position
                     
                     path.append([x,y])
                     #Initial state will be the graph/method designed for traversing the noise graph with initial position and goal position 
