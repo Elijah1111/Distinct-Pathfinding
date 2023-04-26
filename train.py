@@ -24,6 +24,7 @@ class Train():
             print(f"Epoch {i}")
             for j in range(0,self.trials):
                 print(f"|\tTrial {j}")
+                print("|\t| Generating Image")
                 self.img = self.noise.getImage()#make an image
                 count = 0
                 weightedValue = np.zeros((SIZE,SIZE))
@@ -54,7 +55,7 @@ class Train():
                     
                     x,y=startingx,startingy
                     count=0
-
+                    print("|\t|\t| Starting graph conversion")
                     while not finished:
                         # move to x+1,y
                         if x < SIZE-1:
@@ -117,11 +118,20 @@ class Train():
         print(f"{time.time()-start}")
 
     def renderMap(self,path,startingx,startingy,endingVal):#render a path along the current map
-        plt.imshow(self.img,cmap="gray")
+        fig = plt.figure(1)#path map
+        ax = fig.add_subplot()
+        ax.imshow(self.img,cmap="gray")
         xp, yp = zip(*path)#unwrap the path into x and y values
-        plt.scatter(xp,yp,color="blue")#plot them
-        plt.scatter([startingx,endingVal[0]],[startingy,endingVal[1]],color="red")
-        plt.show()
+        ax.scatter(xp,yp,color="blue")#plot them
+        ax.scatter([startingx,endingVal[0]],[startingy,endingVal[1]],color="red")
+        plt.pause(1)
+        
+        '''
+        ax.imshow(self.img,cmap="gray")
+        ax.scatter([startingx,endingVal[0]],[startingy,endingVal[1]],color="red")
+        plt.pause(2)
+        '''
+        
 
 if __name__ == "__main__":
     t = Train()
