@@ -110,12 +110,14 @@ class Train():
                     
                     self.renderMap(path,startingx,startingy,endingVal)
                     rewardMap = weightedValue.copy()
+                    xp, yp = zip(*path)
                     for row in range(SIZE):
                         for col in range(SIZE):
-                            if rewardMap[row][col] not in path:
+                            if row not in xp or col not in yp:
                                 rewardMap[row][col] *= -1
                             else:
-                                print("Path Value")
+                                print("Path Value: " + str(row) + " "+ str(col))
+                    rewardMap[endingVal[0],endingVal[1]] = 50
                     print(rewardMap)                   
     #                 env = agt.GridWorld(128, 128)
     #                 env.render()
