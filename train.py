@@ -4,6 +4,7 @@ import perlin as per
 import numpy as np
 import time #this could be removed
 import matplotlib.pyplot as plt
+import agent as agt
 
 #This is where the training is to happen
 SIZE = 128
@@ -108,6 +109,53 @@ class Train():
                     path.append([x,y])
                     
                     self.renderMap(path,startingx,startingy,endingVal)
+                    rewardMap = weightedValue.copy()
+                    for row in range(SIZE):
+                        for col in range(SIZE):
+                            if rewardMap[row][col] not in path:
+                                rewardMap[row][col] *= -1
+                            else:
+                                print("Path Value")
+                    print(rewardMap)                   
+    #                 env = agt.GridWorld(128, 128)
+    #                 env.render()
+    # # model hyperparameters
+    #                 ALPHA = 0.1
+    #                 GAMMA = 1.0
+    #                 EPS = 1.0
+
+    #                 Q = {}
+    #                 for state in env.stateSpacePlus:
+    #                     for action in env.possibleActions:
+    #                         Q[state, action] = 0
+
+    #                 numGames = 10000
+    #                 totalRewards = np.zeros(self.episodes)
+    #                 for i in range(self.epis):
+    #                     if i % 5000 == 0:
+    #                         print('starting game ', i)
+    #                     done = False
+    #                     epRewards = 0
+    #                     observation = env.reset()
+    #                     while not done:
+    #                         rand = np.random.random()
+    #                         action = agt.maxAction(Q,observation, env.possibleActions) if rand < (1-EPS) \
+    #                                                 else env.actionSpaceSample()
+    #                         observation_, reward, done, info = env.step(action)
+    #                         epRewards += reward
+
+    #                         action_ = agt.maxAction(Q, observation_, env.possibleActions)
+    #                         Q[observation,action] = Q[observation,action] + ALPHA*(reward + \
+    #                                     GAMMA*Q[observation_,action_] - Q[observation,action])
+    #                         observation = observation_
+    #                     if EPS - 2 / numGames > 0:
+    #                         EPS -= 2 / numGames
+    #                     else:
+    #                         EPS = 0
+    #                     totalRewards[i] = epRewards
+
+    #                 plt.plot(totalRewards)
+    #                 plt.show()
                     #Initial state will be the graph/method designed for traversing the noise graph with initial position and goal position 
                     #Goal state and reward modeling will be based on dikjstra's path x
                     #First step will be to get dikjstra's path on the given array x
