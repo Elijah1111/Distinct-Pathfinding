@@ -8,7 +8,7 @@ import agent as agt
 import random
 
 #This is where the training is to happen
-SIZE = 32
+SIZE = 128
 class Train():
     
     img = np.empty(0)
@@ -20,6 +20,7 @@ class Train():
         self.episodes = episodes
         self.trials = trials
         self.epochs = epochs
+        
     def train(self):#train the model
         start = time.time()
         for i in range(0,self.epochs):#TODO probably speed these loops up
@@ -132,6 +133,7 @@ class Train():
         print(f"{time.time()-start}")
 
     def renderMap(self,path,startingx,startingy,endingVal):#render a path along the current map
+        return
         fig = plt.figure(1)#path map
         ax = fig.add_subplot()
         ax.imshow(self.img,cmap="gray")
@@ -158,12 +160,12 @@ class State:
         val1, val2 = self.state
         current_state = [val1,val2]
         if current_state not in path:
-            print("Not in path")
+            print("|\t|\t|Not in path           ",end="\r")
             return -1
         elif self.state == end:
             return 10
         else:
-            print("Made it to path value")
+            print("|\t|\t|Made it to path value",end="\r")
             return -.2
         #give the rewards for each state -.2 for on path, +10 for win, -1 for others
 
@@ -225,7 +227,7 @@ class Agent:
                     self.Q[(i, j, k)] =0
                     self.new_Q[(i, j, k)] = 0
         
-        print(self.Q)
+        #print(self.Q)
         
     
 
@@ -317,8 +319,8 @@ class Agent:
         
     #plot the reward vs episodes
     def plot(self,episodes):
-        
         plt.plot(self.plot_reward)
+        plt.title("Reward Per Episode")
         plt.show()
         
         
