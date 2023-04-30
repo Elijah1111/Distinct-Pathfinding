@@ -6,6 +6,10 @@ import time #this could be removed
 import matplotlib.pyplot as plt
 import agent as agt
 import random
+from pathfinding.core.diagonal_movement import DiagonalMovement
+from pathfinding.core.grid import Grid
+from pathfinding.finder.a_star import AStarFinder
+from pathfinding.finder.dijkstra import DijkstraFinder
 
 #This is where the training is to happen
 SIZE = 48
@@ -45,79 +49,36 @@ class Train():
                         #print(count)
                 for e in range(0,self.episodes):
                     print(f"|\t|\tEpisode {e}")
+                    #Dijkstra's algorithm
                     startingVal,endingVal = self.noise.getGoals()#get the start and the goal
                     startingx,startingy = startingVal[0],startingVal[1]
-                    distmap=np.ones((SIZE,SIZE),dtype=int)*np.Infinity#initilize distance map
+                    grid = Grid(matrix=weightedValue) 
+                    start = grid.node(startingx,startingy) 
+                    end = grid.node(endingVal[0],endingVal[1])  
+                    finder = DijkstraFinder(diagonal_movement=DiagonalMovement.never)
+                    dPath , runs = finder.find_path(start,end,grid)
+                    #End of algorithm
 
-                    distmap[startingx,startingy] = 0#start position is distance of 0
+                    self.renderMap(dPath,startingx,startingy,endingVal)
 
-                    originmap=np.ones((SIZE,SIZE),dtype=int)*np.nan
-                    visited=np.zeros((SIZE,SIZE),dtype=bool)
-                    
-                    finished = False
-                    
-                    x,y=startingx,startingy
-                    count=0
-                    print("|\t|\t| Starting graph conversion")
-                    while not finished:
-                        # move to x+1,y
-                        if x < SIZE-1:
-                            tmp = weightedValue[x+1,y]+distmap[x,y]
-                            if distmap[x+1,y] > tmp and not visited[x+1,y]:
-                                distmap[x+1,y]   = tmp
-                                originmap[x+1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x-1,y
-                        if x>0:
-                            tmp = weightedValue[x-1,y]+distmap[x,y]
-                            if distmap[x-1,y] > tmp and not visited[x-1,y]:
-                                distmap[x-1,y]   = tmp
-                                originmap[x-1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x,y+1
-                        if y < SIZE-1:
-                            tmp = weightedValue[x,y+1]+distmap[x,y]
-                            if distmap[x,y+1] > tmp and not visited[x,y+1]:
-                                distmap[x,y+1]   = tmp
-                                originmap[x,y+1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x,y-1
-                        if y>0:
-                            tmp = weightedValue[x,y-1]+distmap[x,y]
-                            if distmap[x,y-1] > tmp and not visited[x,y-1]:
-                                distmap[x,y-1]   = tmp
-                                originmap[x,y-1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-
-                        visited[x,y]=True# we have now checked adjacent and we can mark as visted
-
-                        dismaptemp = distmap
-                        dismaptemp[np.where(visited)] = np.Infinity
-  # now we find the shortest path so far
-                        minpost = np.unravel_index(np.argmin(dismaptemp),np.shape(dismaptemp))
-                        x,y=minpost[0],minpost[1]
-                        if x == endingVal[0]-1 and y == endingVal[1]-1:#reached the goal state
-                            finished=True
-                        count=count+1
-
-#Start backtracking to plot the path  
-                    mattemp = weightedValue.astype(float)
-                    x,y = endingVal[0]-1,endingVal[1]-1
-                    
-                    path=[]
-                    mattemp[x,y]=np.nan
-                    while x != startingx or y != startingy:
-                        path.append([x,y])#add to path
-                        xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
-                        x,y=xxyy[0],xxyy[1]#set new position
-                        mattemp[x,y]=np.nan#remove old position
-                    
-                    path.append([x,y])
-                    path.insert(0,[endingVal[0],endingVal[1]])
-                    
-                    self.renderMap(path,startingx,startingy,endingVal)
-
+                    #Start the agent to learn on the current environment and path
                     ag = Agent(start=(startingVal[0],startingVal[1]),end = (endingVal[0],endingVal[1]))
                     episodes = 1000
-                    ag.Q_Learning(episodes,path,start=(startingVal[0],startingVal[1]),end=(endingVal[0],endingVal[1]))
+                    ag.Q_Learning(episodes,dPath,start=(startingVal[0],startingVal[1]),end=(endingVal[0],endingVal[1]))
                     ag.plot(episodes)
-                    # ag.showValues()                
+                    # ag.showValues()  
+
+                    # A* implemented below using import pathfinding (more complex than that but that's the library)
+                    grid = Grid(matrix=weightedValue) 
+                    start = grid.node(startingx,startingy) 
+                    end = grid.node(endingVal[0],endingVal[1])  
+                    finder = AStarFinder(diagonal_movement=DiagonalMovement.never)
+                    aPath , runs = finder.find_path(start,end,grid)
+                    print('operations:', runs, 'path length:', len(aPath))
+                    print(grid.grid_str(path=aPath, start=start, end=end))   
+                    #End of A* 
+
+
                     
         print(f"{time.time()-start}")
 
