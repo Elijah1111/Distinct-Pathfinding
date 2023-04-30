@@ -2,11 +2,12 @@
 import pyfastnoisesimd as fns
 import matplotlib.pyplot as plt#just for displaying the image
 import numpy as np
-
+SIZE = 48
 class Perlin():# a simple class to handle the noise generation
-    shape = [128,128]#the output shape of the image
+    
+    shape = [SIZE,SIZE]#the output shape of the image
     seed  = np.random.randint(2**31)#a random starting seed
-    N_threads = 4#TODO this can be changed to match how mnay cores your cpu has
+    N_threads = 8#TODO this can be changed to match how mnay cores your cpu has
 
     def __init__(self):
         self.perlin = fns.Noise(seed=self.seed, numWorkers=self.N_threads)#create a noise instance
@@ -27,7 +28,7 @@ class Perlin():# a simple class to handle the noise generation
         return img
 
     def getGoals(self):#generate 2 points
-        return np.random.randint(0,128,(2)), np.random.randint(0,128,(2))
+        return np.random.randint(0,SIZE,(2)), np.random.randint(0,SIZE,(2))
 
 
 if __name__ =="__main__":

@@ -8,7 +8,7 @@ import agent as agt
 import random
 
 #This is where the training is to happen
-SIZE = 128
+SIZE = 48
 class Train():
     
     img = np.empty(0)
@@ -16,7 +16,7 @@ class Train():
     trials = 0#trials of episode sets
     epochs = 0#sets of trials
     noise = per.Perlin()
-    def __init__(self,episodes=10,trials=1,epochs=2):
+    def __init__(self,episodes=10,trials=1,epochs=1):
         self.episodes = episodes
         self.trials = trials
         self.epochs = epochs
@@ -112,28 +112,17 @@ class Train():
                     path.insert(0,[endingVal[0],endingVal[1]])
                     
                     self.renderMap(path,startingx,startingy,endingVal)
-                    # rewardMap = weightedValue.copy()
-                    # xp, yp = zip(*path)
-                    # for row in range(SIZE):
-                    #     for col in range(SIZE):
-                    #         if row not in xp or col not in yp:
-                    #             rewardMap[row][col] *= -1
-                    #         else:
-                    #             rewardMap[row][col]*=-.2
-                    #             print("Path Value: " + str(row) + " "+ str(col))
-                    # rewardMap[endingVal[0],endingVal[1]] = 50
-                    # print(rewardMap)   
 
                     ag = Agent(start=(startingVal[0],startingVal[1]),end = (endingVal[0],endingVal[1]))
                     episodes = 1000
                     ag.Q_Learning(episodes,path,start=(startingVal[0],startingVal[1]),end=(endingVal[0],endingVal[1]))
                     ag.plot(episodes)
-                    ag.showValues()                
+                    # ag.showValues()                
                     
         print(f"{time.time()-start}")
 
     def renderMap(self,path,startingx,startingy,endingVal):#render a path along the current map
-        return
+        # return
         fig = plt.figure(1)#path map
         ax = fig.add_subplot()
         ax.imshow(self.img,cmap="gray")
@@ -160,13 +149,13 @@ class State:
         val1, val2 = self.state
         current_state = [val1,val2]
         if current_state not in path:
-            print("|\t|\t|Not in path           ",end="\r")
-            return -1
+            print("|\t|\t| Not in path           ",end="\r")
+            return -.1
         elif self.state == end:
-            return 10
+            return 2
         else:
-            print("|\t|\t|Made it to path value",end="\r")
-            return -.2
+            print("|\t|\t| Made it to path value",end="\r")
+            return -.05
         #give the rewards for each state -.2 for on path, +10 for win, -1 for others
 
     def isEndFunc(self,end):
@@ -314,14 +303,13 @@ class Agent:
             
             #copy new Q values to Q table
             self.Q = self.new_Q.copy()
-        #print final Q table output
-        print(self.Q)
         
     #plot the reward vs episodes
     def plot(self,episodes):
         plt.plot(self.plot_reward)
         plt.title("Reward Per Episode")
         plt.show()
+
         
         
     #iterate through the board and find largest Q value in each, print output
