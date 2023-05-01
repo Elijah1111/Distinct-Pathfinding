@@ -13,6 +13,8 @@ from pathfinding.finder.dijkstra import DijkstraFinder
 
 #This is where the training is to happen
 SIZE = 48
+EPSILON = 3.0
+GAMMA = 1.5
 class Train():
     
     img = np.empty(0)
@@ -36,8 +38,11 @@ class Train():
                 print("|\t| Generating Image")
                 self.img = self.noise.getImage()#make an image
                 count = 0
+
                 weightedValue = np.zeros((SIZE,SIZE))
                 weightedValue.astype(float)
+
+                #Convert each cell into a distance vector
                 for z in range(SIZE):
                     for t in range(SIZE):
                         count+=1
@@ -45,13 +50,15 @@ class Train():
                         if(count %SIZE == 0):
                             tempVar = (1+(self.img[z][t]**2))**.5
                         else:
-                            tempVar = (1+((self.img[z][t]+(self.img[z][t]-1))**2))**.5
+                            tempVar = (1+((self.img[z][t]+(self.img[z][t-1]))**2))**.5
                         #print(tempVar)
                         weightedValue[z][t] = float(tempVar)
                         #print(count)
+
                 for e in range(0,self.episodes):
                     print(f"|\t|\tEpisode {e}")
                     #Dijkstra's algorithm
+                    dTimeStart = time.time()
                     startingVal,endingVal = self.noise.getGoals()#get the start and the goal
                     startingx,startingy = startingVal[0],startingVal[1]
                     grid = Grid(matrix=weightedValue) 
@@ -59,22 +66,37 @@ class Train():
                     end = grid.node(endingVal[0],endingVal[1])  
                     finder = DijkstraFinder(diagonal_movement=DiagonalMovement.never)
                     dPath , runs = finder.find_path(start,end,grid)
+                    dTimeEnd = time.time()
+                    
                     #End of algorithm
 
                     self.renderMap(dPath,startingx,startingy,endingVal)
 
                     #Start the agent to learn on the current environment and path
-                    startTimeModel = time.time()
+                    # startTimeModel = time.time()
+                    #Uncomment above for total train time
+
                     ag = Agent(start=(startingVal[0],startingVal[1]),end = (endingVal[0],endingVal[1]))
-                    episodes = 750
+                    episodes = 850
                     timeAfterTrained = ag.Q_Learning(episodes,dPath,start=(startingVal[0],startingVal[1]),end=(endingVal[0],endingVal[1]))
                     ag.plot(episodes)
                     # ag.showValues()  
+
+                    # Uses dPath instead of path taken by model since model is finding optimal path so it reduces calculations
                     for point in dPath:
                         pathCost += weightedValue[point[0]][point[1]]
-                    endTimeModel = time.time()
-                    print("Model train time: " + str(timeAfterTrained))
-                    print("Model path-cost found: " + str(pathCost))
+                    # endTimeModel = time.time() 
+                    #Uncomment above for total train time
+
+                    print(f"|\t|\tDijkstra time usage: " + str(dTimeEnd-dTimeStart))
+                    print(f"|\t|\tDijkstra path-cost found: " + str(pathCost))
+                    print(f"|\t|\tDijkstra total energy consumption: " + str((pathCost*GAMMA)+(dTimeEnd-dTimeStart)*EPSILON))
+                    print()
+
+                    print(f"|\t|\tModel train time: " + str(timeAfterTrained))
+                    print(f"|\t|\tModel path-cost found: " + str(pathCost))
+                    print(f"|\t|\tModel total energy consumption: " + str((pathCost*GAMMA)+timeAfterTrained*EPSILON))
+                    print()
                     startTimeA = time.time()
                     # A* implemented below using import pathfinding (more complex than that but that's the library)
                     grid = Grid(matrix=weightedValue) 
@@ -86,8 +108,9 @@ class Train():
                         pathCostA += weightedValue[point[0]][point[1]]
 
                     endTimeA = time.time()
-                    print("A* train time: " + str(endTimeA-startTimeA))
-                    print("A* path-cost found: " + str(pathCost))
+                    print(f"|\t|\tA* time usage: " + str(endTimeA-startTimeA))
+                    print(f"|\t|\tA* path-cost found: " + str(pathCostA))
+                    print(f"|\t|\tA* total energy consumption: " + str((pathCostA*GAMMA)+(endTimeA-startTimeA)*EPSILON))
                     # print('operations:', runs, 'path length:', len(aPath))
                     # print(grid.grid_str(path=aPath, start=start, end=end))   
                     #End of A* 
