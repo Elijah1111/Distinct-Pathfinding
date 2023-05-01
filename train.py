@@ -26,6 +26,8 @@ class Train():
         self.epochs = epochs
         
     def train(self):#train the model
+        pathCost = 0
+        pathCostA = 0
         start = time.time()
         for i in range(0,self.epochs):#TODO probably speed these loops up
             print(f"Epoch {i}")
@@ -62,20 +64,32 @@ class Train():
                     self.renderMap(dPath,startingx,startingy,endingVal)
 
                     #Start the agent to learn on the current environment and path
+                    startTimeModel = time.time()
                     ag = Agent(start=(startingVal[0],startingVal[1]),end = (endingVal[0],endingVal[1]))
-                    episodes = 1000
-                    ag.Q_Learning(episodes,dPath,start=(startingVal[0],startingVal[1]),end=(endingVal[0],endingVal[1]))
+                    episodes = 750
+                    timeAfterTrained = ag.Q_Learning(episodes,dPath,start=(startingVal[0],startingVal[1]),end=(endingVal[0],endingVal[1]))
                     ag.plot(episodes)
                     # ag.showValues()  
-
+                    for point in dPath:
+                        pathCost += weightedValue[point[0]][point[1]]
+                    endTimeModel = time.time()
+                    print("Model train time: " + str(timeAfterTrained))
+                    print("Model path-cost found: " + str(pathCost))
+                    startTimeA = time.time()
                     # A* implemented below using import pathfinding (more complex than that but that's the library)
                     grid = Grid(matrix=weightedValue) 
                     start = grid.node(startingx,startingy) 
                     end = grid.node(endingVal[0],endingVal[1])  
                     finder = AStarFinder(diagonal_movement=DiagonalMovement.never)
                     aPath , runs = finder.find_path(start,end,grid)
-                    print('operations:', runs, 'path length:', len(aPath))
-                    print(grid.grid_str(path=aPath, start=start, end=end))   
+                    for point in aPath:
+                        pathCostA += weightedValue[point[0]][point[1]]
+
+                    endTimeA = time.time()
+                    print("A* train time: " + str(endTimeA-startTimeA))
+                    print("A* path-cost found: " + str(pathCost))
+                    # print('operations:', runs, 'path length:', len(aPath))
+                    # print(grid.grid_str(path=aPath, start=start, end=end))   
                     #End of A* 
 
 
@@ -214,8 +228,11 @@ class Agent:
     #Q-learning Algorithm
     def Q_Learning(self,episodes,path,start,end):
         x = 0
+        lastTimeStart = 0
         #iterate through best path for each episode
         while(x < episodes):
+            if(x == episodes-1):
+                lastTimeStart = time.time()
             #check if state is end
             if self.isEnd:
                 #get current rewrard and add to array for plot
@@ -264,6 +281,8 @@ class Agent:
             
             #copy new Q values to Q table
             self.Q = self.new_Q.copy()
+        lastTimeEnd = time.time()
+        return lastTimeEnd-lastTimeStart
         
     #plot the reward vs episodes
     def plot(self,episodes):
