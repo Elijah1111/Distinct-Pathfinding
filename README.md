@@ -11,10 +11,15 @@ A Neural Network that pathfinds on height maps
 
   A python wrapper for FastNoise allowing usage in python project
 
+* [ompl-thin](https://github.com/HiroIshida/ompl-thin-python)
+
+  A python wrapper for OMPL to implement RRT
+
 # Installation 
- Install pyfastnoisesimd
+ Install dependecies
+
  ```
- pip install pyfastnoisesimd
+ pip install pyfastnoisesimd ompl-thin
  ```
 
 
