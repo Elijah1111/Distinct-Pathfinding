@@ -3,7 +3,7 @@
 import numpy as np
 import perlin as per
 import matplotlib.pyplot as plt
-from ompl import Algorithm, LightningDB, LightningPlanner, Planner, set_ompl_random_seed
+from ompl import Algorithm, LightningDB, LightningPlanner, Planner, set_ompl_random_seed, turn_off_logger
 
 EPS = 0.1#Epsilon for max graident allowed
 
@@ -30,6 +30,7 @@ class RRTStar():
                 return x
 
     def __init__(self,iterations,SIZE,img,start,goal):
+        turn_off_logger()
         self.SIZE = SIZE
         self.start = start
         self.end = goal
@@ -79,7 +80,7 @@ if __name__ == "__main__":
     goals = noise.getGoals()
     img = noise.getImage()
     
-    rrt = RRTStar(1000,128,img,goals[0],goals[1])#make an rrt
+    rrt = RRTStar(100,128,img,goals[0],goals[1])#make an rrt
 
     rrt.bestPath(goals[0],goals[1])#find the best path
 
