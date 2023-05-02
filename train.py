@@ -3,7 +3,7 @@
 import perlin as per
 import rrtstar as RRT
 import numpy as np
-import time #this could be removed
+import time 
 import matplotlib.pyplot as plt
 import agent as agt
 import random
@@ -57,77 +57,91 @@ class Train():
                         weightedValue[z][t] = float(tempVar)
                         #print(count)
                 goals = self.noise.getGoals()
-                # self.rrt = RRT.RRTStar(100,SIZE,self.img,goals[0],goals[1])#make an rrt
+                self.rrt = RRT.RRTStar(100,SIZE,self.img,goals[0],goals[1])#make an rrt
                 for e in range(0,self.episodes):
+                    pathCost = 0
+                    pathCostA = 0
                     print(f"|\t|\tSet {e}")
-                    #Dijkstra's algorithm
-                    dTimeStart = time.time()
                     startingVal,endingVal = self.noise.getGoals()#get the start and the goal
                     startingx,startingy = startingVal[0],startingVal[1]
-                    distmap=np.ones((SIZE,SIZE),dtype=int)*np.Infinity#initilize distance map
 
-                    distmap[startingx,startingy] = 0#start position is distance of 0
-
-                    originmap=np.ones((SIZE,SIZE),dtype=int)*np.nan
-                    visited=np.zeros((SIZE,SIZE),dtype=bool)
-                    
-                    finished = False
-                    
-                    x,y=startingx,startingy
-                    count=0
-                    print("|\t|\t| Starting graph conversion")
-                    while not finished:
-                        # move to x+1,y
-                        if x < SIZE-1:
-                            tmp = weightedValue[x+1,y]+distmap[x,y]
-                            if distmap[x+1,y] > tmp and not visited[x+1,y]:
-                                distmap[x+1,y]   = tmp
-                                originmap[x+1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x-1,y
-                        if x>0:
-                            tmp = weightedValue[x-1,y]+distmap[x,y]
-                            if distmap[x-1,y] > tmp and not visited[x-1,y]:
-                                distmap[x-1,y]   = tmp
-                                originmap[x-1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x,y+1
-                        if y < SIZE-1:
-                            tmp = weightedValue[x,y+1]+distmap[x,y]
-                            if distmap[x,y+1] > tmp and not visited[x,y+1]:
-                                distmap[x,y+1]   = tmp
-                                originmap[x,y+1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x,y-1
-                        if y>0:
-                            tmp = weightedValue[x,y-1]+distmap[x,y]
-                            if distmap[x,y-1] > tmp and not visited[x,y-1]:
-                                distmap[x,y-1]   = tmp
-                                originmap[x,y-1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-
-                        visited[x,y]=True# we have now checked adjacent and we can mark as visted
-
-                        dismaptemp = distmap
-                        dismaptemp[np.where(visited)] = np.Infinity
-  # now we find the shortest path so far
-                        minpost = np.unravel_index(np.argmin(dismaptemp),np.shape(dismaptemp))
-                        x,y=minpost[0],minpost[1]
-                        if x == endingVal[0]-1 and y == endingVal[1]-1:#reached the goal state
-                            finished=True
-                        count=count+1
-
-#Start backtracking to plot the path  
-                    mattemp = weightedValue.astype(float)
-                    x,y = endingVal[0]-1,endingVal[1]-1
-                    
-                    path=[]
-                    mattemp[x,y]=np.nan
-                    while x != startingx or y != startingy:
-                        path.append([x,y])#add to path
-                        xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
-                        x,y=xxyy[0],xxyy[1]#set new position
-                        mattemp[x,y]=np.nan#remove old position
-                    
-                    path.append([x,y])
-                    path.insert(0,[endingVal[0],endingVal[1]])
+                    #Using Library Dijkstra Solution
+                    dTimeStart = time.time()
+                    grid = Grid(matrix=weightedValue)
+                    start = grid.node(startingx,startingy) 
+                    end = grid.node(endingVal[0],endingVal[1])  
+                    finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
+                    path , runs = finder.find_path(start,end,grid)
                     dTimeEnd = time.time()
+
+                    #Manual Dijkstra Solution
+#                     dTimeStart = time.time()
+#                     startingVal,endingVal = self.noise.getGoals()#get the start and the goal
+#                     startingx,startingy = startingVal[0],startingVal[1]
+#                     distmap=np.ones((SIZE,SIZE),dtype=int)*np.Infinity#initilize distance map
+
+#                     distmap[startingx,startingy] = 0#start position is distance of 0
+
+#                     originmap=np.ones((SIZE,SIZE),dtype=int)*np.nan
+#                     visited=np.zeros((SIZE,SIZE),dtype=bool)
+                    
+#                     finished = False
+                    
+#                     x,y=startingx,startingy
+#                     count=0
+#                     print("|\t|\t| Starting graph conversion")
+#                     while not finished:
+#                         # move to x+1,y
+#                         if x < SIZE-1:
+#                             tmp = weightedValue[x+1,y]+distmap[x,y]
+#                             if distmap[x+1,y] > tmp and not visited[x+1,y]:
+#                                 distmap[x+1,y]   = tmp
+#                                 originmap[x+1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+#                         # move to x-1,y
+#                         if x>0:
+#                             tmp = weightedValue[x-1,y]+distmap[x,y]
+#                             if distmap[x-1,y] > tmp and not visited[x-1,y]:
+#                                 distmap[x-1,y]   = tmp
+#                                 originmap[x-1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+#                         # move to x,y+1
+#                         if y < SIZE-1:
+#                             tmp = weightedValue[x,y+1]+distmap[x,y]
+#                             if distmap[x,y+1] > tmp and not visited[x,y+1]:
+#                                 distmap[x,y+1]   = tmp
+#                                 originmap[x,y+1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+#                         # move to x,y-1
+#                         if y>0:
+#                             tmp = weightedValue[x,y-1]+distmap[x,y]
+#                             if distmap[x,y-1] > tmp and not visited[x,y-1]:
+#                                 distmap[x,y-1]   = tmp
+#                                 originmap[x,y-1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+
+#                         visited[x,y]=True# we have now checked adjacent and we can mark as visted
+
+#                         dismaptemp = distmap
+#                         dismaptemp[np.where(visited)] = np.Infinity
+#   # now we find the shortest path so far
+#                         minpost = np.unravel_index(np.argmin(dismaptemp),np.shape(dismaptemp))
+#                         x,y=minpost[0],minpost[1]
+#                         if x == endingVal[0]-1 and y == endingVal[1]-1:#reached the goal state
+#                             finished=True
+#                         count=count+1
+
+# #Start backtracking to plot the path  
+#                     mattemp = weightedValue.astype(float)
+#                     x,y = endingVal[0]-1,endingVal[1]-1
+                    
+#                     path=[]
+#                     mattemp[x,y]=np.nan
+#                     while x != startingx or y != startingy:
+#                         path.append([x,y])#add to path
+#                         xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
+#                         x,y=xxyy[0],xxyy[1]#set new position
+#                         mattemp[x,y]=np.nan#remove old position
+                    
+#                     path.append([x,y])
+#                     path.insert(0,[endingVal[0],endingVal[1]])
+#                     dTimeEnd = time.time()
                     
                     
                     #End of algorithm
@@ -139,7 +153,7 @@ class Train():
                     #Uncomment above for total train time
 
                     ag = Agent(start=startingVal,end = endingVal)
-                    episodes = 850
+                    episodes = 1000
                     path = np.array(path)
                     timeAfterTrained = ag.Q_Learning(episodes,path,start=startingVal,end=endingVal)
                     ag.plot(episodes)
@@ -148,6 +162,7 @@ class Train():
                     # Uses path instead of path taken by model since model is finding optimal path so it reduces calculations
                     for point in path:
                         pathCost += weightedValue[point[0]][point[1]]
+        
                     # endTimeModel = time.time() 
                     #Uncomment above for total train time
 
@@ -167,10 +182,10 @@ class Train():
                     grid = Grid(matrix=weightedValue) 
                     start = grid.node(startingx,startingy) 
                     end = grid.node(endingVal[0],endingVal[1])  
-                    finder = AStarFinder(diagonal_movement=DiagonalMovement.never)
+                    finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
                     aPath , runs = finder.find_path(start,end,grid)
-                    for point in aPath:
-                        pathCostA += weightedValue[point[0]][point[1]]
+                    for pointA in aPath:
+                        pathCostA += weightedValue[pointA[0]][pointA[1]]
 
                     endTimeA = time.time()
                     print(f"|\t|\tA* time usage: " + str(endTimeA-startTimeA))
@@ -184,10 +199,10 @@ class Train():
                     print()
                     print(f"|\t|\tRRT time usage: " + str(rTime))
                     print(f"|\t|\tRRT path-cost found: " + str(rcost))
-                    print(f"|\t|\tRRT total energy consumption: " + str((rcost+rTime)*EPSILON))
+                    print(f"|\t|\tRRT total energy consumption: " + str((rcost*GAMMA)+(rTime*EPSILON)))
                     # print('operations:', runs, 'path length:', len(aPath))
                     # print(grid.grid_str(path=aPath, start=start, end=end))   
-                    #End of A* 
+                    
                    
 
 
@@ -195,29 +210,29 @@ class Train():
         print(f"{time.time()-start}")
     
 
-    def RRTFind(self):
-        path = self.rrt.simplified
-        start = path[0]
-        cost = 0.0
-        for i in range(1,len(path)):
-            goal = path[i]
-            dumb = set()
-            nodes = []
-            for a in range(0,11):
-                a /= 10
-                tmp = (1-a)*start + a*goal
-                tmp = tmp.astype(int)
-                tmp = tuple(tmp)
-                if tmp not in dumb:
-                    nodes.append(tmp)
-                    dumb.add(tmp)
-            prevNode = nodes[0]
-            for node in nodes:
-                prevVal = self.img[prevNode[0],prevNode[1]]
-                tmp = self.img[node[0],node[1]]
-                prevNode = node
-                cost += tmp
-        return cost
+    # def RRTFind(self):
+    #     path = self.rrt.simplified
+    #     start = path[0]
+    #     cost = 0.0
+    #     for i in range(1,len(path)):
+    #         goal = path[i]
+    #         dumb = set()
+    #         nodes = []
+    #         for a in range(0,11):
+    #             a /= 10
+    #             tmp = (1-a)*start + a*goal
+    #             tmp = tmp.astype(int)
+    #             tmp = tuple(tmp)
+    #             if tmp not in dumb:
+    #                 nodes.append(tmp)
+    #                 dumb.add(tmp)
+    #         prevNode = nodes[0]
+    #         for node in nodes:
+    #             prevVal = self.img[prevNode[0],prevNode[1]]
+    #             tmp = self.img[node[0],node[1]]
+    #             prevNode = node
+    #             cost += tmp
+    #     return cost
 
 
                 
@@ -273,6 +288,14 @@ class State:
             nxtState = (self.state[0] + 1, self.state[1]) #down
         elif action == 2:
             nxtState = (self.state[0], self.state[1] - 1) #left
+        elif action == 3:
+            nxtState = (self.state[0]-1,self.state[1]+1) #Diagonal Right Up
+        elif action == 4:
+            nxtState = (self.state[0]-1,self.state[1]-1) #Diagonal Left Up
+        elif action == 5:
+            nxtState = (self.state[0]+1,self.state[1]-1) #Diagonal Left Down
+        elif action == 6:
+            nxtState = (self.state[0]+1,self.state[1]+1) #Diagonal right Down
         else:
             nxtState = (self.state[0], self.state[1] + 1) #right
 
@@ -294,7 +317,7 @@ class Agent:
     def __init__(self,start,end):
         #inialise states and actions 
         self.states = []
-        self.actions = [0,1,2,3]    # up, down, left, right
+        self.actions = [0,1,2,3,4,5,6,7]    # up, down, left, right
         self.State = State(start,end)
         #set the learning and greedy values
         self.alpha = 0.5
@@ -371,7 +394,7 @@ class Agent:
                     reward = 1
                 else:
                     reward = 0
-                #get current rewrard and add to array for plot
+                #get current reward and add to array for plot
                 self.rewards += reward
                 self.plot_reward.append(self.rewards)
                 #print(f"|\t|\t|\t|\t| Reward {self.rewards}")
@@ -426,6 +449,7 @@ class Agent:
     #plot the reward vs episodes
     def plot(self,episodes):
         fig = plt.figure(2)
+        plt.clf()
         ax = fig.add_subplot()
         ax.plot(self.plot_reward)
         plt.title("Reward Per Episode")
