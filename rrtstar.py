@@ -44,7 +44,7 @@ class RRTStar():
         
     def genTrees(self,iterations):#generate the random trees
         for _ in range(iterations):
-            tmp = self.rrt.solve(self.sample(),self.sample())#make a tree
+            tmp = self.rrt.solve(self.start,self.sample())#make a tree
             if tmp != None:
                 self.database.add_experience(np.array(tmp))#save the trees
         #maybe save the database?
@@ -62,7 +62,6 @@ class RRTStar():
 
         self.lightPath = lightning.solve(start,end)#find the best current path
         self.simplified = lightning.solve(start,end,simplify=True)#simplify that path
-        print(f"Fails: {self.f}")
     
 
 
@@ -80,7 +79,7 @@ if __name__ == "__main__":
     goals = noise.getGoals()
     img = noise.getImage()
     
-    rrt = RRTStar(100,128,img,goals[0],goals[1])#make an rrt
+    rrt = RRTStar(100,48,img,goals[0],goals[1])#make an rrt
 
     rrt.bestPath(goals[0],goals[1])#find the best path
 
@@ -88,7 +87,7 @@ if __name__ == "__main__":
     plt.imshow(img,cmap="gray")
     paths = rrt.database.get_experienced_paths()#get all the possible trees generated
 
-    for i in range(0,len(paths),10):#only render some of the paths
+    for i in range(0,len(paths)):#only render some of the paths
         path = paths[i]
         plot_trajectory(ax, path, "red")
     
