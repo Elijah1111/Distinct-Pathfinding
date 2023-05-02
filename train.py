@@ -146,7 +146,7 @@ class Train():
                     
                     #End of algorithm
 
-                    self.renderMap(path,startingx,startingy,endingVal)
+                    #self.renderMap(path,startingx,startingy,endingVal)
                     
                     #Start the agent to learn on the current environment and path
                     # startTimeModel = time.time()
@@ -156,7 +156,7 @@ class Train():
                     episodes = 10
                     path = np.array(path)
                     timeAfterTrained = ag.Q_Learning(episodes,path,start=startingVal,end=endingVal)
-                    ag.plot(episodes)
+                    #ag.plot(episodes)
                     # ag.showValues()  
 
                     # Uses path instead of path taken by model since model is finding optimal path so it reduces calculations
@@ -218,8 +218,8 @@ class Train():
             goal = path[i]
             dumb = set()
             nodes = []
-            for a in range(0,SIZE+1):
-                a /= SIZE
+            for a in range(0,SIZE*10):
+                a /= (SIZE*10)
                 #lerp
                 tmp = (1-a)*start + a*goal
                 tmp = tmp.astype(int)
@@ -227,8 +227,10 @@ class Train():
                 if tmp not in dumb:
                     nodes.append(tmp)
                     dumb.add(tmp)
+            start = goal
             prevNode = nodes[0]
             for node in nodes:
+
                 prevVal = weightedValue[prevNode[0],prevNode[1]]
                 tmp = weightedValue[node[0],node[1]]
                 prevNode = node
