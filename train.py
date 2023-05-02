@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import perlin as per
-# import rrtstar as RRT
+import rrtstar as RRT
 import numpy as np
 import time 
 import matplotlib.pyplot as plt
@@ -33,7 +33,7 @@ class Train():
         pathCost = 0
         pathCostA = 0
         dPathCost = 0
-        start = time.time()
+        startTime = time.time()
         for i in range(0,self.epochs):#TODO probably speed these loops up
             print(f"Epoch {i}")
             for j in range(0,self.trials):
@@ -67,13 +67,13 @@ class Train():
                     startingx,startingy = startingVal[0],startingVal[1]
 
                     #Using Library Dijkstra Solution
-                    dTimeStart = time.time()
-                    grid = Grid(matrix=weightedValue)
-                    start = grid.node(startingx,startingy) 
-                    end = grid.node(endingVal[0],endingVal[1])  
-                    finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
-                    dPath , runs = finder.find_path(start,end,grid)
-                    dTimeEnd = time.time()
+                    # dTimeStart = time.time()
+                    # grid = Grid(matrix=weightedValue)
+                    # start = grid.node(startingx,startingy) 
+                    # end = grid.node(endingVal[0],endingVal[1])  
+                    # finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
+                    # dPath , runs = finder.find_path(start,end,grid)
+                    # dTimeEnd = time.time()
 
                     #Manual Dijkstra Solution
                     dTimeStart = time.time()
@@ -185,8 +185,8 @@ class Train():
                     # ag.showValues()  
 
                     # Uses path instead of path taken by model since model is finding optimal path so it reduces calculations
-                    for point in dPath:
-                        dPathCost += weightedValue[point[0]][point[1]]
+                    # for point in dPath:
+                    #     dPathCost += weightedValue[point[0]][point[1]]
 
                     for point in path:
                         pathCost += weightedValue[point[0]][point[1]]
@@ -194,10 +194,10 @@ class Train():
                     # endTimeModel = time.time() 
                     #Uncomment above for total train time
 
-                    print(f"|\t|\tDijkstra time usage: " + str(dTimeEnd-dTimeStart))
-                    print(f"|\t|\tDijkstra path-cost found: " + str(dPathCost))
-                    print(f"|\t|\tDijkstra total energy consumption: " + str((pathCost*GAMMA)+(dTimeEnd-dTimeStart)*EPSILON))
-                    print()
+                    # print(f"|\t|\tDijkstra time usage: " + str(dTimeEnd-dTimeStart))
+                    # print(f"|\t|\tDijkstra path-cost found: " + str(dPathCost))
+                    # print(f"|\t|\tDijkstra total energy consumption: " + str((pathCost*GAMMA)+(dTimeEnd-dTimeStart)*EPSILON))
+                    # print()
 
                     print(f"|\t|\tManual Dijkstra time usage: " + str(dTimeEnd-dTimeStart))
                     print(f"|\t|\tDijkstra path-cost found: " + str(pathCost))
@@ -233,14 +233,14 @@ class Train():
                     print(f"|\t|\tRRT time usage: " + str(rTime))
                     print(f"|\t|\tRRT path-cost found: " + str(rcost))
                     print(f"|\t|\tRRT total energy consumption: " + str((rcost*GAMMA)+(rTime*EPSILON)))
-                    # print('operations:', runs, 'path length:', len(aPath))
-                    # print(grid.grid_str(path=aPath, start=start, end=end))   
+                    print('operations:', runs, 'path length:', len(aPath))
+                    print(grid.grid_str(path=aPath, start=start, end=end))   
                     
                    
 
 
                     
-        print(f"{time.time()-start}")
+        print(f"Overall Time For All Training And Testing: {time.time()-startTime}")
     
 
     def RRTFind(self,weightedValue):
