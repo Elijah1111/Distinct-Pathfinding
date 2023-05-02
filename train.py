@@ -57,7 +57,6 @@ class Train():
                         weightedValue[z][t] = float(tempVar)
                         #print(count)
                 goals = self.noise.getGoals()
-                self.rrt = RRT.RRTStar(100,SIZE,self.img,goals[0],goals[1])#make an rrt
                 for e in range(0,self.episodes):
                     pathCost = 0
                     pathCostA = 0
@@ -193,6 +192,7 @@ class Train():
                     print(f"|\t|\tA* total energy consumption: " + str((pathCostA*GAMMA)+(endTimeA-startTimeA)*EPSILON))
                     
                     rTime = time.time()
+                    self.rrt = RRT.RRTStar(100,SIZE,self.img,goals[0],goals[1])#make an rrt
                     self.rrt.bestPath(startingVal,endingVal)#Generate best paths for rrt
                     rTime = time.time() - rTime
                     rcost = self.RRTFind(weightedValue)
