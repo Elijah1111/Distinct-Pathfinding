@@ -65,12 +65,12 @@ class RRTStar():
     
 
 
-def plot_trajectory(ax, points, color):
+def plot_trajectory(ax, points, color,size=0.5):
     points = np.array(points)
     for i in range(len(points) - 1):
         p0 = points[i]
         p1 = points[i + 1]
-        ax.plot([p0[0], p1[0]], [p0[1], p1[1]], color=color, lw=0.5)
+        ax.plot([p0[0], p1[0]], [p0[1], p1[1]], color=color, lw=size)
     ax.scatter(points[:, 0], points[:, 1], c="black", s=0.3)
 
 
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     goals = noise.getGoals()
     img = noise.getImage()
     
-    rrt = RRTStar(100,128,img,goals[0],goals[1])#make an rrt
+    rrt = RRTStar(1000,128,img,goals[0],goals[1])#make an rrt
 
     rrt.bestPath(goals[0],goals[1])#find the best path
 
@@ -87,14 +87,15 @@ if __name__ == "__main__":
     plt.imshow(img,cmap="gray")
     paths = rrt.database.get_experienced_paths()#get all the possible trees generated
 
-    for i in range(0,len(paths)):#only render some of the paths
+    for i in range(0,len(paths),10):#only render some of the paths
         path = paths[i]
         plot_trajectory(ax, path, "red")
     
     if(rrt.lightPath != None):
-        plot_trajectory(ax, rrt.lightPath, "blue")#grab the best path
+        plot_trajectory(ax, rrt.lightPath, "blue",size=1.2)#grab the best path
     if(rrt.simplified != None):
         plot_trajectory(ax, rrt.simplified, "green")#grab the simplified best path
     
     plt.scatter(x=[goals[0][0],goals[1][0]],y=[goals[0][1],goals[1][1]],c="y",s=20)
+    plt.title("RRT Graph")
     plt.show()
