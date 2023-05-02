@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import perlin as per
+import rrtstar as RRT
 import numpy as np
 import time #this could be removed
 import matplotlib.pyplot as plt
@@ -55,7 +56,8 @@ class Train():
                         #print(tempVar)
                         weightedValue[z][t] = float(tempVar)
                         #print(count)
-
+                goals = self.noise.getGoals()
+                self.rrt = RRT.RRTStar(100,SIZE,self.img,goals[0],goals[1])#make an rrt
                 for e in range(0,self.episodes):
                     print(f"|\t|\tSet {e}")
                     #Dijkstra's algorithm
@@ -69,10 +71,11 @@ class Train():
                     dPath , runs = finder.find_path(start,end,grid)
                     dTimeEnd = time.time()
                     
+                    
                     #End of algorithm
 
                     self.renderMap(dPath,startingx,startingy,endingVal)
-
+                    
                     #Start the agent to learn on the current environment and path
                     # startTimeModel = time.time()
                     #Uncomment above for total train time
@@ -98,6 +101,8 @@ class Train():
                     print(f"|\t|\tModel train time: " + str(timeAfterTrained))
                     print(f"|\t|\tModel path-cost found: " + str(pathCost))
                     print(f"|\t|\tModel total energy consumption: " + str((pathCost*GAMMA)+timeAfterTrained*EPSILON))
+                    
+                    
                     print()
                     startTimeA = time.time()
                     # A* implemented below using import pathfinding (more complex than that but that's the library)
@@ -113,14 +118,52 @@ class Train():
                     print(f"|\t|\tA* time usage: " + str(endTimeA-startTimeA))
                     print(f"|\t|\tA* path-cost found: " + str(pathCostA))
                     print(f"|\t|\tA* total energy consumption: " + str((pathCostA*GAMMA)+(endTimeA-startTimeA)*EPSILON))
+                    
+                    rTime = time.time()
+                    self.rrt.bestPath(startingVal,endingVal)#Generate best paths for rrt
+                    rTime = time.time() - rTime
+                    rcost = self.RRTFind()
+                    print()
+                    print(f"|\t|\tRRT time usage: " + str(rTime))
+                    print(f"|\t|\tRRT path-cost found: " + str(rcost))
+                    print(f"|\t|\tRRT total energy consumption: " + str((rcost+rTime)*EPSILON))
                     # print('operations:', runs, 'path length:', len(aPath))
                     # print(grid.grid_str(path=aPath, start=start, end=end))   
                     #End of A* 
+                   
 
 
                     
         print(f"{time.time()-start}")
+    
 
+    def RRTFind(self):
+        path = self.rrt.simplified
+        start = path[0]
+        cost = 0.0
+        for i in range(1,len(path)):
+            goal = path[i]
+            dumb = set()
+            nodes = []
+            for a in range(0,11):
+                a /= 10
+                tmp = (1-a)*start + a*goal
+                tmp = tmp.astype(int)
+                tmp = tuple(tmp)
+                if tmp not in dumb:
+                    nodes.append(tmp)
+                    dumb.add(tmp)
+            prevNode = nodes[0]
+            for node in nodes:
+                prevVal = self.img[prevNode[0],prevNode[1]]
+                tmp = self.img[node[0],node[1]]
+                prevNode = node
+                cost += tmp
+        return cost
+
+
+                
+            
     def renderMap(self,path,startingx,startingy,endingVal):#render a path along the current map
         # return
         fig = plt.figure(1)#path map
