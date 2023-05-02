@@ -171,17 +171,17 @@ class Train():
                     
                     #End of algorithm
 
-                    self.renderMap(path,startingx,startingy,endingVal)
+                    #self.renderMap(path,startingx,startingy,endingVal)
                     
                     #Start the agent to learn on the current environment and path
                     # startTimeModel = time.time()
                     #Uncomment above for total train time
 
                     ag = Agent(start=startingVal,end = endingVal)
-                    episodes = 1000
+                    episodes = 10
                     path = np.array(path)
                     timeAfterTrained = ag.Q_Learning(episodes,path,start=startingVal,end=endingVal)
-                    ag.plot(episodes)
+                    #ag.plot(episodes)
                     # ag.showValues()  
 
                     # Uses path instead of path taken by model since model is finding optimal path so it reduces calculations
@@ -225,14 +225,14 @@ class Train():
                     print(f"|\t|\tA* path-cost found: " + str(pathCostA))
                     print(f"|\t|\tA* total energy consumption: " + str((pathCostA*GAMMA)+(endTimeA-startTimeA)*EPSILON))
                     
-                    # rTime = time.time()
-                    # self.rrt.bestPath(startingVal,endingVal)#Generate best paths for rrt
-                    # rTime = time.time() - rTime
-                    # rcost = self.RRTFind()
-                    # print()
-                    # print(f"|\t|\tRRT time usage: " + str(rTime))
-                    # print(f"|\t|\tRRT path-cost found: " + str(rcost))
-                    # print(f"|\t|\tRRT total energy consumption: " + str((rcost*GAMMA)+(rTime*EPSILON)))
+                    rTime = time.time()
+                    self.rrt.bestPath(startingVal,endingVal)#Generate best paths for rrt
+                    rTime = time.time() - rTime
+                    rcost = self.RRTFind(weightedValue)
+                    print()
+                    print(f"|\t|\tRRT time usage: " + str(rTime))
+                    print(f"|\t|\tRRT path-cost found: " + str(rcost))
+                    print(f"|\t|\tRRT total energy consumption: " + str((rcost*GAMMA)+(rTime*EPSILON)))
                     # print('operations:', runs, 'path length:', len(aPath))
                     # print(grid.grid_str(path=aPath, start=start, end=end))   
                     
@@ -243,29 +243,32 @@ class Train():
         print(f"{time.time()-start}")
     
 
-    # def RRTFind(self):
-    #     path = self.rrt.simplified
-    #     start = path[0]
-    #     cost = 0.0
-    #     for i in range(1,len(path)):
-    #         goal = path[i]
-    #         dumb = set()
-    #         nodes = []
-    #         for a in range(0,11):
-    #             a /= 10
-    #             tmp = (1-a)*start + a*goal
-    #             tmp = tmp.astype(int)
-    #             tmp = tuple(tmp)
-    #             if tmp not in dumb:
-    #                 nodes.append(tmp)
-    #                 dumb.add(tmp)
-    #         prevNode = nodes[0]
-    #         for node in nodes:
-    #             prevVal = self.img[prevNode[0],prevNode[1]]
-    #             tmp = self.img[node[0],node[1]]
-    #             prevNode = node
-    #             cost += tmp
-    #     return cost
+    def RRTFind(self,weightedValue):
+        path = self.rrt.simplified
+        start = path[0]
+        cost = 0.0
+        for i in range(1,len(path)):
+            goal = path[i]
+            dumb = set()
+            nodes = []
+            for a in range(0,SIZE*10):
+                a /= (SIZE*10)
+                #lerp
+                tmp = (1-a)*start + a*goal
+                tmp = tmp.astype(int)
+                tmp = tuple(tmp)
+                if tmp not in dumb:
+                    nodes.append(tmp)
+                    dumb.add(tmp)
+            start = goal
+            prevNode = nodes[0]
+            for node in nodes:
+
+                prevVal = weightedValue[prevNode[0],prevNode[1]]
+                tmp = weightedValue[node[0],node[1]]
+                prevNode = node
+                cost += tmp
+        return cost
 
 
                 
