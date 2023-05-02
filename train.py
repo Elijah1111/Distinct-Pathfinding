@@ -6,6 +6,7 @@ import time #this could be removed
 import matplotlib.pyplot as plt
 import agent as agt
 import random
+import cython
 from pathfinding.core.diagonal_movement import DiagonalMovement
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
@@ -56,7 +57,7 @@ class Train():
                         #print(count)
 
                 for e in range(0,self.episodes):
-                    print(f"|\t|\tEpisode {e}")
+                    print(f"|\t|\tSet {e}")
                     #Dijkstra's algorithm
                     dTimeStart = time.time()
                     startingVal,endingVal = self.noise.getGoals()#get the start and the goal
@@ -76,9 +77,10 @@ class Train():
                     # startTimeModel = time.time()
                     #Uncomment above for total train time
 
-                    ag = Agent(start=(startingVal[0],startingVal[1]),end = (endingVal[0],endingVal[1]))
+                    ag = Agent(start=startingVal,end = endingVal)
                     episodes = 850
-                    timeAfterTrained = ag.Q_Learning(episodes,dPath,start=(startingVal[0],startingVal[1]),end=(endingVal[0],endingVal[1]))
+                    dPath = np.array(dPath)
+                    timeAfterTrained = ag.Q_Learning(episodes,dPath,start=startingVal,end=endingVal)
                     ag.plot(episodes)
                     # ag.showValues()  
 
@@ -127,6 +129,7 @@ class Train():
         xp, yp = zip(*path)#unwrap the path into x and y values
         ax.scatter(xp,yp,color="blue")#plot them
         ax.scatter([startingx,endingVal[0]],[startingy,endingVal[1]],color="red")
+        plt.title("Height Map")
         plt.pause(1)
         
         '''
@@ -140,25 +143,25 @@ class State:
         #initalise the state to start and end to false
         self.state = start
         self.isEnd = False    
-        self.end = end  
+        self.end = end 
         self.start = start  
 
     def getReward(self,path,end):
-        val1, val2 = self.state
-        current_state = [val1,val2]
-        if current_state not in path:
-            print("|\t|\t| Not in path           ",end="\r")
-            return -.1
-        elif self.state == end:
+        state = self.state
+        dist = np.linalg.norm(state - self.end)
+        if state not in path:
+            #print("|\t|\t| Not in path           ",end="\r")
+            return -1
+        elif np.array_equal(state,end):
             return 2
         else:
-            print("|\t|\t| Made it to path value",end="\r")
+            #print("|\t|\t| Made it to path value",end="\r")
             return -.05
         #give the rewards for each state -.2 for on path, +10 for win, -1 for others
 
     def isEndFunc(self,end):
         #set state to end if win/loss
-        if (self.state == end):
+        if np.array_equal(self.state,end):
             self.isEnd = True
             
     def nxtPosition(self, action):     
@@ -229,6 +232,7 @@ class Agent:
         #9/10 find max Q value over actions 
         if(rnd >self.epsilon) :
             #iterate through actions, find Q  value and choose best 
+            action = 0
             for k in self.actions:
                 
                 i,j = self.State.state
@@ -250,18 +254,26 @@ class Agent:
     
     #Q-learning Algorithm
     def Q_Learning(self,episodes,path,start,end):
-        x = 0
+        print("|\t|\t| Starting Learning")
         lastTimeStart = 0
         #iterate through best path for each episode
+        x = 0
+        count = 0
+        print(f"|\t|\t|\t| Episode {x}")
         while(x < episodes):
+            count += 1
             if(x == episodes-1):
                 lastTimeStart = time.time()
             #check if state is end
-            if self.isEnd:
+            if self.isEnd or count > len(path)*10:#reached end or timed out
+                if self.isEnd:
+                    reward = 1
+                else:
+                    reward = 0
                 #get current rewrard and add to array for plot
-                reward = self.State.getReward(path,end)
                 self.rewards += reward
                 self.plot_reward.append(self.rewards)
+                #print(f"|\t|\t|\t|\t| Reward {self.rewards}")
                 
                 #get state, assign reward to each Q_value in state
                 i,j = self.State.state
@@ -275,6 +287,9 @@ class Agent:
                 #set rewards to zero and iterate to next episode
                 self.rewards = 0
                 x+=1
+                count = 0
+                if(x%100 == 0):
+                    print(f"|\t|\t|\t| Episode {x}")
             else:
                 #set to arbitrary low value to compare net state actions
                 mx_nxt_value = -10
@@ -309,9 +324,11 @@ class Agent:
         
     #plot the reward vs episodes
     def plot(self,episodes):
-        plt.plot(self.plot_reward)
+        fig = plt.figure(2)
+        ax = fig.add_subplot()
+        ax.plot(self.plot_reward)
         plt.title("Reward Per Episode")
-        plt.show()
+        plt.pause(1)
 
         
         
