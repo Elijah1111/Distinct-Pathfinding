@@ -153,7 +153,7 @@ class Train():
                     #Uncomment above for total train time
 
                     ag = Agent(start=startingVal,end = endingVal)
-                    episodes = 1000
+                    episodes = 10
                     path = np.array(path)
                     timeAfterTrained = ag.Q_Learning(episodes,path,start=startingVal,end=endingVal)
                     ag.plot(episodes)
@@ -195,7 +195,7 @@ class Train():
                     rTime = time.time()
                     self.rrt.bestPath(startingVal,endingVal)#Generate best paths for rrt
                     rTime = time.time() - rTime
-                    rcost = self.RRTFind()
+                    rcost = self.RRTFind(weightedValue)
                     print()
                     print(f"|\t|\tRRT time usage: " + str(rTime))
                     print(f"|\t|\tRRT path-cost found: " + str(rcost))
@@ -210,29 +210,30 @@ class Train():
         print(f"{time.time()-start}")
     
 
-    # def RRTFind(self):
-    #     path = self.rrt.simplified
-    #     start = path[0]
-    #     cost = 0.0
-    #     for i in range(1,len(path)):
-    #         goal = path[i]
-    #         dumb = set()
-    #         nodes = []
-    #         for a in range(0,11):
-    #             a /= 10
-    #             tmp = (1-a)*start + a*goal
-    #             tmp = tmp.astype(int)
-    #             tmp = tuple(tmp)
-    #             if tmp not in dumb:
-    #                 nodes.append(tmp)
-    #                 dumb.add(tmp)
-    #         prevNode = nodes[0]
-    #         for node in nodes:
-    #             prevVal = self.img[prevNode[0],prevNode[1]]
-    #             tmp = self.img[node[0],node[1]]
-    #             prevNode = node
-    #             cost += tmp
-    #     return cost
+    def RRTFind(self,weightedValue):
+        path = self.rrt.simplified
+        start = path[0]
+        cost = 0.0
+        for i in range(1,len(path)):
+            goal = path[i]
+            dumb = set()
+            nodes = []
+            for a in range(0,SIZE+1):
+                a /= SIZE
+                #lerp
+                tmp = (1-a)*start + a*goal
+                tmp = tmp.astype(int)
+                tmp = tuple(tmp)
+                if tmp not in dumb:
+                    nodes.append(tmp)
+                    dumb.add(tmp)
+            prevNode = nodes[0]
+            for node in nodes:
+                prevVal = weightedValue[prevNode[0],prevNode[1]]
+                tmp = weightedValue[node[0],node[1]]
+                prevNode = node
+                cost += tmp
+        return cost
 
 
                 
