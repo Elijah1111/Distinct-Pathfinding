@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
 import perlin as per
-# import rrtstar as RRT
+import rrtstar as RRT
 import numpy as np
 import time 
 import matplotlib.pyplot as plt
-import agent as agt
 import random
 from pathfinding.core.diagonal_movement import DiagonalMovement
 from pathfinding.core.grid import Grid
@@ -43,24 +42,23 @@ class Train():
             weightedValue.astype(float)
 
                 #Convert each cell into a distance vector
-                for z in range(SIZE):
-                    for t in range(SIZE):
-                        count+=1
-                        tempVar = 0
-                        if(count %SIZE == 0):
-                            tempVar = (1+(self.img[z][t]**2))**.5
-                        else:
-                            tempVar = (1+((self.img[z][t]+(self.img[z][t-1]))**2))**.5
-                        #print(tempVar)
-                        weightedValue[z][t] = float(tempVar)
-                        #print(count)
-                goals = self.noise.getGoals()
-                for e in range(0,self.episodes):
-                    pathCost = 0
-                    pathCostA = 0
-                    print(f"|\t|\tSet {e}")
-                    startingVal,endingVal = self.noise.getGoals()#get the start and the goal
-                    startingx,startingy = startingVal[0],startingVal[1]
+            for z in range(SIZE):
+                for t in range(SIZE):
+                    count+=1
+                    tempVar = 0
+                    if(count %SIZE == 0):
+                        tempVar = (1+(self.img[z][t]**2))**.5
+                    else:
+                        tempVar = (1+((self.img[z][t]+(self.img[z][t-1]))**2))**.5
+                    #print(tempVar)
+                    weightedValue[z][t] = float(tempVar)
+                    #print(count)
+            for e in range(0,self.episodes):
+                pathCost = 0
+                pathCostA = 0
+                print(f"|\t|\tSet {e}")
+                startingVal,endingVal = self.noise.getGoals()#get the start and the goal
+                startingx,startingy = startingVal[0],startingVal[1]
 
                 #Using Library Dijkstra Solution
                 # dTimeStart = time.time()
@@ -173,16 +171,12 @@ class Train():
                 # startTimeModel = time.time()
                 #Uncomment above for total train time
 
-                    ag = Agent(start=startingVal,end = endingVal)
-                    episodes = 10
-                    path = np.array(path)
-                    timeAfterTrained = ag.Q_Learning(episodes,path,start=startingVal,end=endingVal)
-                    #ag.plot(episodes)
-                    # ag.showValues()  
-
-                # Uses path instead of path taken by model since model is finding optimal path so it reduces calculations
-                # for point in dPath:
-                #     dPathCost += weightedValue[point[0]][point[1]]
+                ag = Agent(start=startingVal,end = endingVal)
+                episodes = 850
+                path = np.array(path)
+                timeAfterTrained = ag.Q_Learning(episodes,path,start=startingVal,end=endingVal)
+                #ag.plot(episodes) TODO Uncomment this to see reward graphs; Multiple plots open while it runs the reinforcement tends to slow down the processes 
+                
 
                 for point in path:
                     pathCost += weightedValue[point[0]][point[1]]
@@ -190,12 +184,7 @@ class Train():
                 # endTimeModel = time.time() 
                 #Uncomment above for total train time
 
-                # print(f"|\t|\tDijkstra time usage: " + str(dTimeEnd-dTimeStart))
-                # print(f"|\t|\tDijkstra path-cost found: " + str(dPathCost))
-                # print(f"|\t|\tDijkstra total energy consumption: " + str((pathCost*GAMMA)+(dTimeEnd-dTimeStart)*EPSILON))
-                # print()
-
-                print(f"|\t|\tManual Dijkstra time usage: " + str(dTimeEnd-dTimeStart))
+                print(f"|\t|\tDijkstra time usage: " + str(dTimeEnd-dTimeStart))
                 print(f"|\t|\tDijkstra path-cost found: " + str(pathCost))
                 print(f"|\t|\tDijkstra total energy consumption: " + str((pathCost*GAMMA)+(dTimeEnd-dTimeStart)*EPSILON))
                 print()
@@ -216,21 +205,19 @@ class Train():
                 for pointA in aPath:
                     pathCostA += weightedValue[pointA[0]][pointA[1]]
 
-                    endTimeA = time.time()
-                    print(f"|\t|\tA* time usage: " + str(endTimeA-startTimeA))
-                    print(f"|\t|\tA* path-cost found: " + str(pathCostA))
-                    print(f"|\t|\tA* total energy consumption: " + str((pathCostA*GAMMA)+(endTimeA-startTimeA)*EPSILON))
-                    
-                    rTime = time.time()
-                    self.rrt.bestPath(startingVal,endingVal)#Generate best paths for rrt
-                    rTime = time.time() - rTime
-                    rcost = self.RRTFind(weightedValue)
-                    print()
-                    print(f"|\t|\tRRT time usage: " + str(rTime))
-                    print(f"|\t|\tRRT path-cost found: " + str(rcost))
-                    print(f"|\t|\tRRT total energy consumption: " + str((rcost*GAMMA)+(rTime*EPSILON)))
-                    print('operations:', runs, 'path length:', len(aPath))
-                    print(grid.grid_str(path=aPath, start=start, end=end))   
+                endTimeA = time.time()
+                print(f"|\t|\tA* time usage: " + str(endTimeA-startTimeA))
+                print(f"|\t|\tA* path-cost found: " + str(pathCostA))
+                print(f"|\t|\tA* total energy consumption: " + str((pathCostA*GAMMA)+(endTimeA-startTimeA)*EPSILON))
+                
+                rTime = time.time()
+                self.rrt.bestPath(startingVal,endingVal)#Generate best paths for rrt
+                rTime = time.time() - rTime
+                rcost = self.RRTFind(weightedValue)
+                print()
+                print(f"|\t|\tRRT time usage: " + str(rTime))
+                print(f"|\t|\tRRT path-cost found: " + str(rcost))
+                print(f"|\t|\tRRT total energy consumption: " + str((rcost*GAMMA)+(rTime*EPSILON)))
                     
                    
 
