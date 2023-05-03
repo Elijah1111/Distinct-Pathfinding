@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
 import perlin as per
-import rrtstar as RRT
+# import rrtstar as RRT
 import numpy as np
 import time 
 import matplotlib.pyplot as plt
 import agent as agt
 import random
-import cython
 from pathfinding.core.diagonal_movement import DiagonalMovement
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
-from pathfinding.finder.dijkstra import DijkstraFinder
 
 #This is where the training is to happen
-SIZE = 48
+
+#Change SIZE in this file and perlin.py to change the height map's size
+SIZE = 64
 EPSILON = 3.0
 GAMMA = 1.5
 class Train():
@@ -32,209 +32,204 @@ class Train():
     def train(self):#train the model
         pathCost = 0
         pathCostA = 0
-        dPathCost = 0
         startTime = time.time()
-        for i in range(0,self.epochs):#TODO probably speed these loops up
-            print(f"Epoch {i}")
-            for j in range(0,self.trials):
-                print(f"|\tTrial {j}")
-                print("|\t| Generating Image")
-                self.img = self.noise.getImage()#make an image
-                count = 0
+        for j in range(0,self.trials):
+            print(f"| Trial {j}")
+            print("|\t| Generating Image")
+            self.img = self.noise.getImage()#make an image
+            count = 0
 
-                weightedValue = np.zeros((SIZE,SIZE))
-                weightedValue.astype(float)
+            weightedValue = np.zeros((SIZE,SIZE))
+            weightedValue.astype(float)
 
-                #Convert each cell into a distance vector
-                for z in range(SIZE):
-                    for t in range(SIZE):
-                        count+=1
-                        tempVar = 0
-                        if(count %SIZE == 0):
-                            tempVar = (1+(self.img[z][t]**2))**.5
-                        else:
-                            tempVar = (1+((self.img[z][t]+(self.img[z][t-1]))**2))**.5
-                        #print(tempVar)
-                        weightedValue[z][t] = float(tempVar)
-                        #print(count)
-                goals = self.noise.getGoals()
-                # self.rrt = RRT.RRTStar(100,SIZE,self.img,goals[0],goals[1])#make an rrt
-                for e in range(0,self.episodes):
-                    pathCost = 0
-                    pathCostA = 0
-                    print(f"|\t|\tSet {e}")
-                    startingVal,endingVal = self.noise.getGoals()#get the start and the goal
-                    startingx,startingy = startingVal[0],startingVal[1]
-
-                    #Using Library Dijkstra Solution
-                    # dTimeStart = time.time()
-                    # grid = Grid(matrix=weightedValue)
-                    # start = grid.node(startingx,startingy) 
-                    # end = grid.node(endingVal[0],endingVal[1])  
-                    # finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
-                    # dPath , runs = finder.find_path(start,end,grid)
-                    # dTimeEnd = time.time()
-
-                    #Manual Dijkstra Solution
-                    dTimeStart = time.time()
-                    startingVal,endingVal = self.noise.getGoals()#get the start and the goal
-                    startingx,startingy = startingVal[0],startingVal[1]
-                    distmap=np.ones((SIZE,SIZE),dtype=int)*np.Infinity#initilize distance map
-
-                    distmap[startingx,startingy] = 0#start position is distance of 0
-
-                    originmap=np.ones((SIZE,SIZE),dtype=int)*np.nan
-                    visited=np.zeros((SIZE,SIZE),dtype=bool)
+            #Convert each cell into a distance vector
+            for z in range(SIZE):
+                for t in range(SIZE):
+                    count+=1
+                    tempVar = 0
+                    if(count %SIZE == 0):
+                        tempVar = (1+(self.img[z][t]**2))**.5
+                    else:
+                        tempVar = (1+((self.img[z][t]+(self.img[z][t-1]))**2))**.5
                     
-                    finished = False
-                    
-                    x,y=startingx,startingy
-                    count=0
-                    print("|\t|\t| Starting graph conversion")
-                    while not finished:
-                        # move to x+1,y : down
-                        if x < SIZE-1:
-                            tmp = weightedValue[x+1,y]+distmap[x,y]
-                            if distmap[x+1,y] > tmp and not visited[x+1,y]:
-                                distmap[x+1,y]   = tmp
-                                originmap[x+1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x-1,y : up
-                        if x>0:
-                            tmp = weightedValue[x-1,y]+distmap[x,y]
-                            if distmap[x-1,y] > tmp and not visited[x-1,y]:
-                                distmap[x-1,y]   = tmp
-                                originmap[x-1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x,y+1 : right
-                        if y < SIZE-1:
-                            tmp = weightedValue[x,y+1]+distmap[x,y]
-                            if distmap[x,y+1] > tmp and not visited[x,y+1]:
-                                distmap[x,y+1]   = tmp
-                                originmap[x,y+1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x,y-1 : left
-                        if y>0:
-                            tmp = weightedValue[x,y-1]+distmap[x,y]
-                            if distmap[x,y-1] > tmp and not visited[x,y-1]:
-                                distmap[x,y-1]   = tmp
-                                originmap[x,y-1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x+1,y+1 : down and right diagonal
-                        if x < SIZE-1 and y < SIZE-1:
-                            tmp = weightedValue[x+1,y+1]+distmap[x,y]
-                            if distmap[x+1,y+1] > tmp and not visited[x+1,y+1]:
-                                distmap[x+1,y+1]   = tmp
-                                originmap[x+1,y+1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x+1,y-1 : down and left diagonal
-                        if x < SIZE-1 and y>0:
-                            tmp = weightedValue[x+1,y-1]+distmap[x,y]
-                            if distmap[x+1,y-1] > tmp and not visited[x+1,y-1]:
-                                distmap[x+1,y-1]   = tmp
-                                originmap[x+1,y-1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x-1,y+1 : up and right diagonal
-                        if x>0 and y < SIZE-1:
-                            tmp = weightedValue[x-1,y+1]+distmap[x,y]
-                            if distmap[x-1,y+1] > tmp and not visited[x-1,y+1]:
-                                distmap[x-1,y+1]   = tmp
-                                originmap[x-1,y+1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
-                        # move to x-1,y-1 : up and left diagonal
-                        if x >0 and y >0:
-                            tmp = weightedValue[x-1,y-1]+distmap[x,y]
-                            if distmap[x-1,y-1] > tmp and not visited[x-1,y-1]:
-                                distmap[x-1,y-1]   = tmp
-                                originmap[x-1,y-1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+                    weightedValue[z][t] = float(tempVar)
+            # self.rrt = RRT.RRTStar(100,SIZE,self.img,goals[0],goals[1])#make an rrt
+            for e in range(0,self.episodes):
+                pathCost = 0
+                pathCostA = 0
+                print(f"|\t|\tSet {e}")
+                startingVal,endingVal = self.noise.getGoals()#get the start and the goal
+                startingx,startingy = startingVal[0],startingVal[1]
 
-                        visited[x,y]=True# we have now checked adjacent and we can mark as visted
+                #Using Library Dijkstra Solution
+                # dTimeStart = time.time()
+                # grid = Grid(matrix=weightedValue)
+                # start = grid.node(startingx,startingy) 
+                # end = grid.node(endingVal[0],endingVal[1])  
+                # finder = DijkstraFinder(diagonal_movement=DiagonalMovement.always)
+                # dPath , runs = finder.find_path(start,end,grid)
+                # dTimeEnd = time.time()
 
-                        dismaptemp = distmap
-                        dismaptemp[np.where(visited)] = np.Infinity
-  # now we find the shortest path so far
-                        minpost = np.unravel_index(np.argmin(dismaptemp),np.shape(dismaptemp))
-                        x,y=minpost[0],minpost[1]
-                        if x == endingVal[0]-1 and y == endingVal[1]-1:#reached the goal state
-                            finished=True
-                        count=count+1
+                #Manual Dijkstra Solution Set to Finding the path on our height map
+                dTimeStart = time.time()
+                startingVal,endingVal = self.noise.getGoals()#get the start and the goal
+                startingx,startingy = startingVal[0],startingVal[1]
+                distmap=np.ones((SIZE,SIZE),dtype=int)*np.Infinity#initilize distance map
 
-#Start backtracking to plot the path  
-                    mattemp = weightedValue.astype(float)
-                    x,y = endingVal[0]-1,endingVal[1]-1
-                    
-                    path=[]
-                    mattemp[x,y]=np.nan
-                    while x != startingx or y != startingy:
-                        path.append([x,y])#add to path
-                        xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
-                        x,y=xxyy[0],xxyy[1]#set new position
-                        mattemp[x,y]=np.nan#remove old position
-                    
-                    
-                    path.insert(0,[endingVal[0],endingVal[1]])
-                    dTimeEnd = time.time()
-                    
-                    
-                    #End of algorithm
+                distmap[startingx,startingy] = 0#start position is distance of 0
 
-                    #self.renderMap(path,startingx,startingy,endingVal)
-                    
-                    #Start the agent to learn on the current environment and path
-                    # startTimeModel = time.time()
-                    #Uncomment above for total train time
+                originmap=np.ones((SIZE,SIZE),dtype=int)*np.nan
+                visited=np.zeros((SIZE,SIZE),dtype=bool)
+                
+                finished = False
+                
+                x,y=startingx,startingy
+                count=0
+                print("|\t|\t| Starting graph conversion")
+                while not finished:
+                    # move to x+1,y : down
+                    if x < SIZE-1:
+                        tmp = weightedValue[x+1,y]+distmap[x,y]
+                        if distmap[x+1,y] > tmp and not visited[x+1,y]:
+                            distmap[x+1,y]   = tmp
+                            originmap[x+1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+                    # move to x-1,y : up
+                    if x>0:
+                        tmp = weightedValue[x-1,y]+distmap[x,y]
+                        if distmap[x-1,y] > tmp and not visited[x-1,y]:
+                            distmap[x-1,y]   = tmp
+                            originmap[x-1,y] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+                    # move to x,y+1 : right
+                    if y < SIZE-1:
+                        tmp = weightedValue[x,y+1]+distmap[x,y]
+                        if distmap[x,y+1] > tmp and not visited[x,y+1]:
+                            distmap[x,y+1]   = tmp
+                            originmap[x,y+1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+                    # move to x,y-1 : left
+                    if y>0:
+                        tmp = weightedValue[x,y-1]+distmap[x,y]
+                        if distmap[x,y-1] > tmp and not visited[x,y-1]:
+                            distmap[x,y-1]   = tmp
+                            originmap[x,y-1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+                    # move to x+1,y+1 : down and right diagonal
+                    if x < SIZE-1 and y < SIZE-1:
+                        tmp = weightedValue[x+1,y+1]+distmap[x,y]
+                        if distmap[x+1,y+1] > tmp and not visited[x+1,y+1]:
+                            distmap[x+1,y+1]   = tmp
+                            originmap[x+1,y+1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+                    # move to x+1,y-1 : down and left diagonal
+                    if x < SIZE-1 and y>0:
+                        tmp = weightedValue[x+1,y-1]+distmap[x,y]
+                        if distmap[x+1,y-1] > tmp and not visited[x+1,y-1]:
+                            distmap[x+1,y-1]   = tmp
+                            originmap[x+1,y-1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+                    # move to x-1,y+1 : up and right diagonal
+                    if x>0 and y < SIZE-1:
+                        tmp = weightedValue[x-1,y+1]+distmap[x,y]
+                        if distmap[x-1,y+1] > tmp and not visited[x-1,y+1]:
+                            distmap[x-1,y+1]   = tmp
+                            originmap[x-1,y+1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
+                    # move to x-1,y-1 : up and left diagonal
+                    if x >0 and y >0:
+                        tmp = weightedValue[x-1,y-1]+distmap[x,y]
+                        if distmap[x-1,y-1] > tmp and not visited[x-1,y-1]:
+                            distmap[x-1,y-1]   = tmp
+                            originmap[x-1,y-1] = np.ravel_multi_index([x,y], (SIZE,SIZE))
 
-                    ag = Agent(start=startingVal,end = endingVal)
-                    episodes = 10
-                    path = np.array(path)
-                    timeAfterTrained = ag.Q_Learning(episodes,path,start=startingVal,end=endingVal)
-                    #ag.plot(episodes)
-                    # ag.showValues()  
+                    visited[x,y]=True# we have now checked adjacent and we can mark as visted
 
-                    # Uses path instead of path taken by model since model is finding optimal path so it reduces calculations
-                    # for point in dPath:
-                    #     dPathCost += weightedValue[point[0]][point[1]]
+                    dismaptemp = distmap
+                    dismaptemp[np.where(visited)] = np.Infinity
+                    # now we find the shortest path so far
+                    minpost = np.unravel_index(np.argmin(dismaptemp),np.shape(dismaptemp))
+                    x,y=minpost[0],minpost[1]
+                    if x == endingVal[0]-1 and y == endingVal[1]-1:#reached the goal state
+                        finished=True
+                    count=count+1
 
-                    for point in path:
-                        pathCost += weightedValue[point[0]][point[1]]
-        
-                    # endTimeModel = time.time() 
-                    #Uncomment above for total train time
+                #Start backtracking to plot the path  
+                mattemp = weightedValue.astype(float)
+                x,y = endingVal[0]-1,endingVal[1]-1
+                
+                path=[]
+                mattemp[x,y]=np.nan
+                while x != startingx or y != startingy:
+                    path.append([x,y])#add to path
+                    xxyy=np.unravel_index(int(originmap[x,y]), (SIZE,SIZE))
+                    x,y=xxyy[0],xxyy[1]#set new position
+                    mattemp[x,y]=np.nan#remove old position
+                
+                
+                path.insert(0,[endingVal[0],endingVal[1]])
+                dTimeEnd = time.time()
+                
+                
+                #End of algorithm
 
-                    # print(f"|\t|\tDijkstra time usage: " + str(dTimeEnd-dTimeStart))
-                    # print(f"|\t|\tDijkstra path-cost found: " + str(dPathCost))
-                    # print(f"|\t|\tDijkstra total energy consumption: " + str((pathCost*GAMMA)+(dTimeEnd-dTimeStart)*EPSILON))
-                    # print()
+                self.renderMap(path,startingx,startingy,endingVal)
+                
+                #Start the agent to learn on the current environment and path
+                # startTimeModel = time.time()
+                #Uncomment above for total train time
 
-                    print(f"|\t|\tManual Dijkstra time usage: " + str(dTimeEnd-dTimeStart))
-                    print(f"|\t|\tDijkstra path-cost found: " + str(pathCost))
-                    print(f"|\t|\tDijkstra total energy consumption: " + str((pathCost*GAMMA)+(dTimeEnd-dTimeStart)*EPSILON))
-                    print()
+                ag = Agent(start=startingVal,end = endingVal)
+                episodes = 850
+                path = np.array(path)
+                timeAfterTrained = ag.Q_Learning(episodes,path,start=startingVal,end=endingVal)
+                ag.plot(episodes)
+                # ag.showValues()  
 
-                    print(f"|\t|\tModel train time: " + str(timeAfterTrained))
-                    print(f"|\t|\tModel path-cost found: " + str(pathCost))
-                    print(f"|\t|\tModel total energy consumption: " + str((pathCost*GAMMA)+timeAfterTrained*EPSILON))
-                    
-                    
-                    print()
-                    startTimeA = time.time()
-                    # A* implemented below using import pathfinding (more complex than that but that's the library)
-                    grid = Grid(matrix=weightedValue) 
-                    start = grid.node(startingx,startingy) 
-                    end = grid.node(endingVal[0],endingVal[1])  
-                    finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
-                    aPath , runs = finder.find_path(start,end,grid)
-                    for pointA in aPath:
-                        pathCostA += weightedValue[pointA[0]][pointA[1]]
+                # Uses path instead of path taken by model since model is finding optimal path so it reduces calculations
+                # for point in dPath:
+                #     dPathCost += weightedValue[point[0]][point[1]]
 
-                    endTimeA = time.time()
-                    print(f"|\t|\tA* time usage: " + str(endTimeA-startTimeA))
-                    print(f"|\t|\tA* path-cost found: " + str(pathCostA))
-                    print(f"|\t|\tA* total energy consumption: " + str((pathCostA*GAMMA)+(endTimeA-startTimeA)*EPSILON))
-                    
-                    rTime = time.time()
-                    self.rrt.bestPath(startingVal,endingVal)#Generate best paths for rrt
-                    rTime = time.time() - rTime
-                    rcost = self.RRTFind(weightedValue)
-                    print()
-                    print(f"|\t|\tRRT time usage: " + str(rTime))
-                    print(f"|\t|\tRRT path-cost found: " + str(rcost))
-                    print(f"|\t|\tRRT total energy consumption: " + str((rcost*GAMMA)+(rTime*EPSILON)))
-                    print('operations:', runs, 'path length:', len(aPath))
-                    print(grid.grid_str(path=aPath, start=start, end=end))   
+                for point in path:
+                    pathCost += weightedValue[point[0]][point[1]]
+    
+                # endTimeModel = time.time() 
+                #Uncomment above for total train time
+
+                # print(f"|\t|\tDijkstra time usage: " + str(dTimeEnd-dTimeStart))
+                # print(f"|\t|\tDijkstra path-cost found: " + str(dPathCost))
+                # print(f"|\t|\tDijkstra total energy consumption: " + str((pathCost*GAMMA)+(dTimeEnd-dTimeStart)*EPSILON))
+                # print()
+
+                print(f"|\t|\tManual Dijkstra time usage: " + str(dTimeEnd-dTimeStart))
+                print(f"|\t|\tDijkstra path-cost found: " + str(pathCost))
+                print(f"|\t|\tDijkstra total energy consumption: " + str((pathCost*GAMMA)+(dTimeEnd-dTimeStart)*EPSILON))
+                print()
+
+                print(f"|\t|\tModel train time: " + str(timeAfterTrained))
+                print(f"|\t|\tModel path-cost found: " + str(pathCost))
+                print(f"|\t|\tModel total energy consumption: " + str((pathCost*GAMMA)+timeAfterTrained*EPSILON))
+                
+                
+                print()
+                startTimeA = time.time()
+                # A* implemented below using import pathfinding (more complex than that but that's the library)
+                grid = Grid(matrix=weightedValue) 
+                start = grid.node(startingx,startingy) 
+                end = grid.node(endingVal[0],endingVal[1])  
+                finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
+                aPath , runs = finder.find_path(start,end,grid)
+                for pointA in aPath:
+                    pathCostA += weightedValue[pointA[0]][pointA[1]]
+
+                endTimeA = time.time()
+                print(f"|\t|\tA* time usage: " + str(endTimeA-startTimeA))
+                print(f"|\t|\tA* path-cost found: " + str(pathCostA))
+                print(f"|\t|\tA* total energy consumption: " + str((pathCostA*GAMMA)+(endTimeA-startTimeA)*EPSILON))
+                
+                # rTime = time.time()
+                # self.rrt.bestPath(startingVal,endingVal)#Generate best paths for rrt
+                # rTime = time.time() - rTime
+                # rcost = self.RRTFind(weightedValue)
+                # print()
+                # print(f"|\t|\tRRT time usage: " + str(rTime))
+                # print(f"|\t|\tRRT path-cost found: " + str(rcost))
+                # print(f"|\t|\tRRT total energy consumption: " + str((rcost*GAMMA)+(rTime*EPSILON)))
+                # print('operations:', runs, 'path length:', len(aPath))
+                # print(grid.grid_str(path=aPath, start=start, end=end))   
                     
                    
 

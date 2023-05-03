@@ -2,12 +2,12 @@
 import pyfastnoisesimd as fns
 import matplotlib.pyplot as plt#just for displaying the image
 import numpy as np
-SIZE = 48
+SIZE = 64
 class Perlin():# a simple class to handle the noise generation
     
     shape = [SIZE,SIZE]#the output shape of the image
     seed  = np.random.randint(2**31)#a random starting seed
-    N_threads = 8#TODO this can be changed to match how mnay cores your cpu has
+    N_threads = 8 #TODO this can be changed to match how mnay cores your cpu has
 
     def __init__(self):
         self.perlin = fns.Noise(seed=self.seed, numWorkers=self.N_threads)#create a noise instance
