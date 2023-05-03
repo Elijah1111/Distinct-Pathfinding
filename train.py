@@ -211,6 +211,7 @@ class Train():
                 print(f"|\t|\tA* total energy consumption: " + str((pathCostA*GAMMA)+(endTimeA-startTimeA)*EPSILON))
                 
                 rTime = time.time()
+                self.rrt = RRT.RRTStar(100,SIZE,self.img,startingVal,endingVal)#make an rrt
                 self.rrt.bestPath(startingVal,endingVal)#Generate best paths for rrt
                 rTime = time.time() - rTime
                 rcost = self.RRTFind(weightedValue)
