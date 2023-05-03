@@ -47,6 +47,9 @@ class RRTStar():
             tmp = self.rrt.solve(self.start,self.sample())#make a tree
             if tmp != None:
                 self.database.add_experience(np.array(tmp))#save the trees
+        tmp = self.rrt.solve(self.start,self.end)#make a tree
+        if tmp != None:
+            self.database.add_experience(np.array(tmp))#save the trees
         #maybe save the database?
         self.database.save("tmp.db")
     
@@ -59,8 +62,8 @@ class RRTStar():
         
         lightning = LightningPlanner(db_again,[0,0],[self.SIZE,self.SIZE],
                                      self.is_valid,1000, [1,1], Algorithm.RRTstar)
-
         self.lightPath = lightning.solve(start,end)#find the best current path
+        
         self.simplified = lightning.solve(start,end,simplify=True)#simplify that path
     
 
